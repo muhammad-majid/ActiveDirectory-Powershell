@@ -1,0 +1,45 @@
+----Auto Redirection of default landing OU for newly joined domain computers----
+redircmp 'OU=Workstations,OU=Emirates Steel,DC=eisf,DC=co,DC=ae
+
+----Get each AD user and all the groups he belongs to----
+Get-ADUser -Filter {Enabled -eq $true} | .\getGroups.ps1 | Export-CSV C:\Scripts\UserMembers.csv
+Get-ADUser -Filter * | Select Name, SamAccountName, @{n='OU';e={$_.distinguishedname -replace '^.+?,(CN|OU.+)','$1'}} | Export-Csv "C:\Scripts\users.csv" -Encoding "Unicode"
+
+----Get all Domain Controllers in the Domain----
+Get-ADDomainController -Filter * | Select-Object name
+
+----Get Primary Domain Controllers (PDC) in the Domain----
+Get-ADDomainController -Discover -Domain $FQDN -Service "PrimaryDC"
+
+----Delete an AD User----
+Remove-ADuser $identity
+
+----Get all AD Users with employeeID not null, select employeeID emailAddress telephoneNumber and mobile----
+Get-ADUser -filter * -Properties employeeID, emailAddress, telephoneNumber, mobile | ? {$_.employeeID -ne $null} | select employeeID, emailAddress, telephoneNumber, mobile | ConvertTo-Csv -Delimiter ~ -NoTypeInformation | % {$_ -replace '"',''} | Out-File SAP_DUMP.csv -fo -en ascii
+
+----Get Azure AD Sync Schedule----
+Import-Module ADSync
+Get-ADSyncScheduler
+
+----Get all computers in AD----
+Get-ADComputer -Filter * -Properties * | Select -Property Name,DNSHostName,Enabled,LastLogonDate |  Export-CSV "C:\\AllComputers.csv" -NoTypeInformation -Encoding UTF8
+
+----Create a Security Group in AD----
+New-ADGroup –name “Finance” –groupscope Global
+New-ADGroup –name “Finance” –groupscope Global –path “OU=Offices,DC=Contoso,DC=local”
+
+----Get members of a Security Group in AD----
+
+
+
+----Add members to a Security Group in AD----
+Add-ADGroupMember -Identity '$SGName' -Members $Alias1, $Alias2, $Alias3, $Alias4
+
+----Reset password in AD----
+Set-ADAccountPassword $identity -Reset -NewPassword (ConvertTo-SecureString -AsPlainText “$newPassword” -Force -Verbose) -PassThru
+Set-ADUser -identity $identity -ChangePasswordAtLogon $true -PasswordNeverExpires $true
+Unlock-ADAccount –identity $identity
+
+----Perform an AD-Azure Sync----
+Import-Module “C:\Program Files\Microsoft Azure AD Sync\Bin\ADSync\ADSync.ps1”
+Start-ADSyncSyncCycle -PolicyType Delta
