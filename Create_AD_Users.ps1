@@ -65,16 +65,6 @@ Function Create-Users
   
 	Write-Host "Running iteration $i`r`n"
 	"Running iteration $i.." | Out-File $log -append
-    If (($_.Implement.ToLower()) -ne "yes")
-	{
-		Write-Host "[SKIP]`t User ($($_.GivenName) $($_.LastName)) will be skipped for processing!`r`n"
-		"[SKIP]`t User ($($_.GivenName) $($_.LastName)) will be skipped for processing!" | Out-File $log -append
-		$i++
-		continue
-	}
-
-	Write-Host "Implement is set to yes`r`n"
-	"Implement is set to yes" | Out-File $log -append
 	
 	If (($_.GivenName -eq "") -Or ($_.LastName -eq ""))
 	{
@@ -83,85 +73,7 @@ Function Create-Users
 		$i++
 		continue
 	}
-
-	Write-Host "Given name and LastName are not empty..`r`n"
-	"Given name and LastName are not empty.." | Out-File $log -append
-	
-	If (($_.CopyFrom -ne ""))
-	{
-		Write-Host "CopyFrom is not empty`r`n"
-		"CopyFrom is not empty.." | Out-File $log -append
-		$userInstance = Get-ADUser -Identity $_.CopyFrom
-		$replace = $_.Lastname.Replace(".","")
-		$sam = $_.GivenName.ToLower() + "." + $_.LastName.ToLower()
-        
-		Try   { $exists = Get-ADUser -LDAPFilter "(sAMAccountName=$sam)" }
-        Catch
-		{
-			Write-Host "[SKIP]`t CopyFrom User $($sam) ($($_.GivenName) $($_.LastName)) already exists or returned an error!`r`n"
-			"[SKIP]`t CopyFrom User $($sam) ($($_.GivenName) $($_.LastName)) already exists or returned an error!" | Out-File $log -append
-		}
-	
-		If(!$exists)
-        {
-			Write-Host "User $($sam) ($($_.GivenName) $($_.LastName)) doesn't already exist`r`n"
-			"User $($sam) ($($_.GivenName) $($_.LastName)) doesn't already exist.." | Out-File $log -append
-          # Set all variables according to the table names in the Excel
-          # sheet / import CSV. The names can differ in every project, but
-          # if the names change, make sure to change it below as well.
-          $setpass = ConvertTo-SecureString -AsPlainText $_.Password -force
-
-          Try
-          {
-            Write-Host "[INFO]`t Creating user : $($sam)"
-            "[INFO]`t Creating user : $($sam)" | Out-File $log -append
-            
-			$Copy = Get-ADUser $_.CopyFrom
-			
-			Write-Host "Running create user command`r`n"
-            "Running create user command.." | Out-File $log -append
-			
-			New-ADUser -SAMAccountName $sam -Instance $Copy -DisplayName $_.GivenName + " " + $_.LastName
-			
-			Write-Host "Completed create user command`r`n"
-            "Completed create user command.." | Out-File $log -append
-			
-			If (($_.Enabled.ToLower()) -eq "true") { $enabled = $True } Else { $enabled = $False }
-			If (($_.PasswordNeverExpires.ToLower()) -eq "true") { $expires = $True } Else { $expires = $False }
-			
-			#Set-ADUser -Identity $sam.SamAccountName -GivenName $_.GivenName -Surname $_.LastName -Enabled $enabled -PasswordNeverExpires $expires
-			Set-ADUser -Identity "$($sam)" -GivenName $_.GivenName -Surname $_.LastName -Enabled $enabled -PasswordNeverExpires $expires
-			
-            Write-Host "[INFO]`t Created new user : $($sam)"
-            "[INFO]`t Created new user : $($sam)" | Out-File $log -append
-
-            # Rename the object to a good looking name (otherwise you see
-            # the 'ugly' shortened sAMAccountNames as a name in AD. This
-            # can't be set right away (as sAMAccountName) due to the 20
-            # character restriction
-            $newdn = (Get-ADUser $sam).DistinguishedName
-            Rename-ADObject -Identity $newdn -NewName ($_.GivenName + " " + $_.LastName)
-            Write-Host "[INFO]`t Renamed $($sam) to $($_.GivenName) $($_.LastName)`r`n"
-            "[INFO]`t Renamed $($sam) to $($_.GivenName) $($_.LastName)`r`n" | Out-File $log -append
-          }
-          Catch
-          {
-            Write-Host "[ERROR]`t Oops, something went wrong when attempting to create user $($sam) : $($_.Exception.Message)`r`n"
-			"[ERROR]`t Oops, something went wrong when attempting to create user $($sam) : $($_.Exception.Message)" | Out-File $log -append
-          }
-		  
-		Write-Host "Moving to next iteration`r`n"
-		"Moving to next iteration`r`n" | Out-File $log -append
-		$i++
-		continue
-        }
-	}
     
-	Else	#CopyFrom is empty, create a fresh new user from rest of the provided details in excel.
-     {
-		Write-Host "CopyFrom is empty, Createing new user from details in .csv file`r`n"
-		"CopyFrom is empty, Createing new user from details in .csv file.." | Out-File $log -append
-		
         # Set the target OU
         #$location = $_.TargetOU + ",$($addn)"
 		$location = $_.TargetOU
@@ -193,12 +105,10 @@ Function Create-Users
 		{
 			Write-Host "[SKIP]`t User $($sam) ($($_.GivenName) $($_.LastName)) already exists or returned an error!`r`n"
 			"[SKIP]`t User $($sam) ($($_.GivenName) $($_.LastName)) already exists or returned an error!" | Out-File $log -append
+			$i++
+			continue
 		}
 		
-        If(!$exists)
-        {
-			Write-Host "[SKIP]`t User $($sam) ($($_.GivenName) $($_.LastName)) not found among existing users`r`n"
-			 "[SKIP]`t User $($sam) ($($_.GivenName) $($_.LastName)) not found among existing users.." | Out-File $log -append
           # Set all variables according to the table names in the Excel
           # sheet / import CSV. The names can differ in every project, but
           # if the names change, make sure to change it below as well.
@@ -260,17 +170,23 @@ Function Create-Users
             Rename-ADObject -Identity $newdn -NewName ($_.GivenName + " " + $_.LastName)
             Write-Host "[INFO]`t Renamed $($sam) to $($_.GivenName) $($_.LastName)`r`n"
             "[INFO]`t Renamed $($sam) to $($_.GivenName) $($_.LastName)`r`n" | Out-File $log -append
-          }
+			
+			If (($_.CopyGroupMembershipsFrom -ne ""))
+			{
+			Write-Host "Copying group memberships from $($_.CopyGroupMembershipsFrom)`r`n"
+            "Copying group memberships from $($_.CopyGroupMembershipsFrom).." | Out-File $log -append
+			Get-ADUser -Identity $_.CopyGroupMembershipsFrom -Properties memberof | Select-Object -ExpandProperty memberof | Add-ADGroupMember -Members $sam
+			}
+		  }
           Catch
           {
             Write-Host "[ERROR]`t Oops, something went wrong: $($_.Exception.Message)`r`n"
           }
-        }
+		  
 		Write-Host "Moving to next iteration`r`n"
 		"Moving to next iteration`r`n" | Out-File $log -append
 		$i++
     }
-  }
   "--------------------------------------------" + "`r`n" | Out-File $log -append
 }
 
