@@ -71,7 +71,7 @@ Function Create-Users
 		Write-Host "[ERROR]`t Please provide valid GivenName and LastName. Processing skipped for line $($i)`r`n"
         "[ERROR]`t Please provide valid GivenName, LastName. Processing skipped for line $($i)`r`n" | Out-File $log -append
 		$i++
-		continue
+		return
 	}
     
         # Set the target OU
@@ -106,7 +106,7 @@ Function Create-Users
 			Write-Host "[SKIP]`t User $($sam) ($($_.GivenName) $($_.LastName)) already exists or returned an error!`r`n"
 			"[SKIP]`t User $($sam) ($($_.GivenName) $($_.LastName)) already exists or returned an error!" | Out-File $log -append
 			$i++
-			continue
+			return
 		}
 		
           # Set all variables according to the table names in the Excel
