@@ -1,0 +1,6 @@
+FirstName -> GivenName
+LastName -> SurName
+samAccountName is the username
+
+$Copy = get-aduser -identity paine
+New-ADUser -Instance $Copy -Name 'NewPaine' -userprincipalname 'newPaine@mango.com.au' -AccountPassword (ConvertTo-SecureString -AsPlainText 'pa$$w0rd' -force)
