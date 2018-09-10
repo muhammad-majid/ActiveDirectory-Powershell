@@ -40,8 +40,7 @@ $params = @{
     "Enabled"=$enabled
     "ChangePasswordAtLogon"=$changepw
 }
-If ($ou) {
-    $params.Add("Path",$ou)
-}
+If ($ou) { $params.Add("Path",$ou)}
+
 New-ADUser @params
 -----------------------------------------------------------------------
