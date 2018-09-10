@@ -1,0 +1,5 @@
+PowerShell.exe \\eisf017\SAP_Automation_Data\Import_ADUsers_FromSAP_v7.ps1 \\eisf017\SAP_Automation_Data Employee_List.csv admanager@emiratessteel.com Fouziya.BinHraiz@emiratessteel.com
+
+\\eisf017\SAP_Automation_Data\DoNotDelete.csv
+
+.\Import_ADUsers_FromSAP_v8.ps1 .\ .\Employee_List.csv .\Sections-Departments.csv admanager@emiratessteel.com Muhammad.Majid@emiratessteel.com

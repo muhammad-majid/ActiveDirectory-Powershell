@@ -1,0 +1,24 @@
+get all .zip files from the dir
+extract the .csv file within to the same dir
+rename the .csv file with a timestamp
+delete the original .zip file
+open the .csv file and delete top 4 rows.
+save and close the .csv file
+
+Get-ADUser -Filter * -SearchBase "OU=Users, OU=Emirates Steel, DC=eisf,DC=co, DC=ae" -Properties employeeID, emailAddress, telephoneNumber, mobile  | select employeeID, description, displayName, emailAddress, telephoneNumber, mobile  | Export-CSV "C:\ShellWorkingFolder\Ayesha.csv"
+
+$date = (Get-Date ).AddDays(-7)
+Get-ADUser -Filter {whenchanged -gt $date}
+
+Modified Properties : EmployeeID
+Modified Properties : emailAddress
+Modified Properties : telephoneNumber
+Modified Properties : mobile
+
+$timeStamp
+$zipFile = Get-ChildItem -Path $scriptPathFolder -Include *.zip
+Expand-Archive $fileName -DestinationPath $scriptPathFolder+"\unZipped\"+$timeStamp
+$csvFile = Get-ChildItem -Path $scriptPathFolder+"\unZipped\"+$timeStamp -Include *.csv
+Rename-Item $csvFile.Name -NewName ("haha_"+$timeSteamp+".csv")
+#delete 5 rows here..
+Move-Item $csvFile -Destination $scriptPathFolder -Force

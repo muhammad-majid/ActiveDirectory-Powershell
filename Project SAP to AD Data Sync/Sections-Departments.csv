@@ -1,0 +1,177 @@
+Section,Department
+CEO Office,CEO Office
+Chief Operating Office (COO),Chief Operating Office (COO)
+Controlling Group,"Controlling, Business Planning & ERP"
+"Controlling, Business Planning & ERP","Controlling, Business Planning & ERP"
+Cranes - Mechanical,Cranes
+Cranes - Electrical,Cranes
+Condition Monitoring,Cranes & Engineering Services
+Maint. Planning,Cranes & Engineering Services
+Engineering Design,Cranes & Engineering Services
+Credit and Collection,Credit and Collection
+Direct Reduction Plant 1,Direct Reduction Plant 1&2
+Direct Reduction Plant  2,Direct Reduction Plant 1&2
+DRP1&2 Material Handling,Direct Reduction Plant 1&2
+EISC Cranes & Engineering,EISC-Cranes & Engineering Services
+EISC - Direct Reduction Plant,EISC-Direct Reduction Plant 3
+DRP  Electrical & Automation,EISC-Electrical & Automation Maintenance
+SMP Electrical & Automation,EISC-Electrical & Automation Maintenance
+EISC-Finance,EISC-Finance & Costing
+EISC-Health & Safety,EISC-Health & Safety
+EISC-Information Technology,EISC-Information Technology
+DRP Maintenance,EISC-Mechanical Maintenance & Workshop
+MH & Crane Maintenance,EISC-Mechanical Maintenance & Workshop
+Workshop Maintenance,EISC-Mechanical Maintenance & Workshop
+SMP Maintenance,EISC-Mechanical Maintenance & Workshop
+Fluids & Hydraulics,EISC-Mechanical Maintenance & Workshop
+EISC-Rolling Mills,EISC-Rolling Mill 5
+EAF/LF - CCM,EISC-Steel Making Plant 3
+Refractory & Material Handling,EISC-Steel Making Plant 3
+EISC-Steel Making Plant 1,EISC-Steel Making Plant 3
+EISC-Procurement & Logistics,EISC-Supply Chain Management
+Chemical Laboratory,EISC-Technical Services
+Inspection and Testing,EISC-Technical Services
+EISC-Utility & Water Treatment Plant,EISC-Utility & Water Plant
+OP / E&AM / SMP 1,Electrical & Automation Maintenance
+Central Electrical Services & Workshop,Electrical & Automation Maintenance
+Main Sub Station,Electrical & Automation Maintenance
+SMP 1 Elect. & Autom.,Electrical & Automation Maintenance
+OP / E&AM / SMP 2,Electrical & Automation Maintenance
+DRP 1 Elect. & Autom.,Electrical & Automation Maintenance
+OP / E&AM / DRP 1,Electrical & Automation Maintenance
+OP / E&AM / DRP 2,Electrical & Automation Maintenance
+SMP 2  Electrical & Automation,Electrical & Automation Maintenance
+OP / E&AM / CES & Workshop,Electrical & Automation Maintenance
+OP / E&AM / Main Sub Station,Electrical & Automation Maintenance
+DRP 2  Electrical & Automation,Electrical & Automation Maintenance
+RM 4 Electrical & Automation,Electrical & Automation Maintenance
+"OP / E&AM / RM1,2&3",Electrical & Automation Maintenance
+Utility & Water Plant,Engineering & Maintenance Services
+Mechanical Maintenance & Workshop,Engineering & Maintenance Services
+Electrical & Automation Maintenance,Engineering & Maintenance Services
+Cranes & Engineering Services,Engineering & Maintenance Services
+Environment Services,Facilities & Services
+Facilities & Services,Facilities & Services
+Security,Facilities & Services
+Finance & Costing,Finance & Costing
+Finance & Shared Services,Finance & Shared Services
+Government Relations,Government Relations
+Health & Safety,Health & Safety
+HSM Roll Shop,Heavy Section Mill
+HSM Planning,Heavy Section Mill
+Rolling Processes,Heavy Section Mill
+HSM Maint.,Heavy Section Mill
+HSM Operation,Heavy Section Mill
+HSM Maintenance - Mechanical Maintenance,Heavy Section Mill Maint.
+HSM Maintenance - Hydraulics,Heavy Section Mill Maint.
+HSM Maintenance - Electrical &Automation,Heavy Section Mill Maint.
+HSM Maintenance - Planning,Heavy Section Mill Maint.
+HSM Operation - Production,Heavy Section Mil Operation
+HSM Operation - Finishing Process,Heavy Section Mil Operation
+Human Capital,Human Capital
+Employee Relation& Customer Serv,Human Capital
+Strategy & Development,Human Capital
+"Emiratization,Manpower Plan.& Talent Acq",Human Capital
+Training & PMS Administration,Human Capital
+Trainees,Human Capital
+EISC-Human Resources,Human Capital
+Training and Career Development,Human Capital
+Human Resources,Human Capital
+Scholars,Human Capital
+Administration Support,Human Capital & Services
+Human Capital & Services,Human Capital & Services
+Information Technology,Information Technology
+Internal Audit,Internal Audit
+Legal Department,Legal Department
+Events & Goverment Relations,Marketing
+Market Customer,Marketing
+Markets Research & Analysis,Marketing
+Markets Analysis,Marketing
+Media & Communications,Marketing
+Marketing,Marketing
+A. Marketing,Marketing
+"SMP Conveyor, Scrap & Slagplant",Material Handling
+DRP & Jetty,Material Handling
+EISC Material Handling,Material Handling
+Workshop,Mechanical Maintenance & Workshop
+"RM1,2 &3  Maintenance",Mechanical Maintenance & Workshop
+DRP 1 Maint.,Mechanical Maintenance & Workshop
+DRP 2 Maintenance,Mechanical Maintenance & Workshop
+Fluids&Hyd SMP 1&2,Mechanical Maintenance & Workshop
+SMP 1 and 1&2 Maintenance,Mechanical Maintenance & Workshop
+"Fluids&Hyd. RM,MH,DRP & CH Repair Shop",Mechanical Maintenance & Workshop
+SMP 2 Maintenance,Mechanical Maintenance & Workshop
+MH & Crane Maintenance,Mechanical Maintenance & Workshop
+"Rolling Mills 1,2 ,3 & 5",Operation
+Material Handling,Operation
+Direct Reduction Plant 1&2,Operation
+Steel Making Plant 2,Operation
+Steel Making Plant 1,Operation
+Operation,Operation
+Heavy Section Mill,Operation
+Eng. & Commissioning,Projects & Strategy
+Continuous Improvement,Projects & Strategy
+P&S / Project / DRP & SMP,Projects & Strategy
+P&S / Project / Construction,Projects & Strategy
+Project Cost Control,Projects & Strategy
+P & S / PC  / Project Cost Control,Projects & Strategy
+Project Finance,Project Finance
+P&S / Project,Projects & Strategy
+Projects,Projects & Strategy
+P&S / Engineering,Projects & Strategy
+Technical,Projects & Strategy
+P&S / Business Development,Projects & Strategy
+Projects & Strategy,Projects & Strategy
+Public Relations,Public Relations
+Quality Assurance,Quality Assurance
+Risk and Business Continuity Management,Risk and Business Continuity Management
+Rolling Mill (1),"Rolling Mills 1,2 ,3"
+"RM 1,2 & 3 / RM1, 2 & 3 Mechanical","Rolling Mills 1,2 ,3"
+Rolling Mills - Material Handling,"Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / RM5 Electrical","Rolling Mills 1,2 ,3"
+Rolling Mills (3),"Rolling Mills 1,2 ,3"
+Rolling Mills - Roll Shop,"Rolling Mills 1,2 ,3"
+"RM 1,2 & 3 / RM1, 2 & 3 Electrical","Rolling Mills 1,2 ,3"
+Rolling Mills (2),"Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / RM Material Handling","Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / Rolling Mill (2)","Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / Roll Shop","Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / Rolling Mill (3)","Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / RM5 Mechanical","Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / Rolling Mill (1)","Rolling Mills 1,2 ,3"
+"RM1,2,3 & 5 / Rolling Mill (5)","Rolling Mills 1,2 ,3"
+Sales,Sales
+Sales - Rebars and Wire Rod,Sales
+Sales - Heavy Sections,Sales
+SAP Competency Group,SAP Competency Group
+SMP2 Planning,SMP2 Maintenance
+SMP2 Mechanical Maint.,SMP2 Maintenance
+SMP2 Electrical & Auto. Maint.,SMP2 Maintenance
+Standards & Audit,Standards & Audit
+SMP1 CCM (Continues Casting Machine),Steel Making Plant 1
+SMP1 Refractory,Steel Making Plant 1
+SMP1 EAF/LF,Steel Making Plant 1
+SMP2 CCM,Steel Making Plant 2
+SMP2 Maintenance,Steel Making Plant 2
+SMP2 EAF / LF,Steel Making Plant 2
+SMP2 Refractory,Steel Making Plant 2
+Operation - Production / Maintenance,Strategy & Development
+Weighbridge,Supply Chain Management
+Logistics (Warehouse),Supply Chain Management
+Dispatch Section,Supply Chain Management
+Warehouse,Supply Chain Management
+Materials & Spares/Cons.,Supply Chain Management
+Services & Industrial Services,Supply Chain Management
+Supply Chain Management,Supply Chain Management
+Procurement Counsel,Supply Chain Management
+Shipping & Logistics,Supply Chain Management
+Performance Excellence,Supply Chain Management
+Logistics (Shipping & Logistics),Supply Chain Management
+"Inventory, Dispatch &  Warehouse",Supply Chain Management
+Chemical Laboratories,Technical Services
+Inspection and Testing RM 4&5,Technical Services
+"Inspection and Testing RM1,2 & 3",Technical Services
+Technical Services,Technical Services
+Utility Operation 2,Utility & Water Plant
+Utility Operation 1,Utility & Water Plant
+Utility Maint.1 & 2,Utility & Water Plant

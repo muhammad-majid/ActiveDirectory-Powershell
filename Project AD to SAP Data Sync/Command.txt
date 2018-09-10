@@ -1,0 +1,8 @@
+ACTUAL COMMAND:
+PowerShell.exe \\esiclgrp\sapmnt\EPR\EMP_COMMN\Export_ADUsers_ToSAP_v1.ps1 \\esiclgrp\sapmnt\EPR\EMP_COMMN Employee_List.csv adaudit@emiratessteel.com aisha.alahmad@emiratessteel.com
+
+\\esiclgrp\sapmnt\EPR\EMP_COMMN\DoNotDelete.csv
+
+TRIAL RUNS:
+PowerShell.exe \\esiclgrp\sapmnt\EPR\EMP_COMMN\Export_ADUsers_ToSAP_v1.ps1 \\esiclgrp\sapmnt\EPR\EMP_COMMN Employee_List.csv adaudit@emiratessteel.com muhammad.majid@emiratessteel.com
+
