@@ -198,7 +198,6 @@ Import-CSV $newpath | ForEach-Object {
 	If($Phone) { $Params.Add("telephoneNumber",$Phone) }
 	If($Description) { $Params.Add("description",$Description) }
 	#If($PasswordNeverExpires -eq "true") { $Params.Add("??",$True) }
-	If($AccountIsEnabled -eq "true") { { $Params.Add("enabled",$True) }
 	If($TargetOU) { $params.Add("Path",$TargetOU)}
 	If($OfficeName) { $params.Add("physicalDeliveryOfficeName",$OfficeName) }
 	If($StreetAddress) { $params.Add("streetAddress",$StreetAddress) }
@@ -226,6 +225,13 @@ Import-CSV $newpath | ForEach-Object {
 		Set-ADUser -identity $sam @params
 		Write-Host "$($sam) set up successfully`r`n"
 		(insertTimeStamp)+"$($sam) set up successfully.." | Out-File $log -append
+		
+		If($AccountIsEnabled -eq "true")
+		{
+			Enable-ADAccount -Identity $sam
+			Write-Host "$($sam) enabled successfully`r`n"
+			(insertTimeStamp)+"$($sam) enabled successfully.." | Out-File $log -append
+		}
 		
 	}
 	Catch
@@ -359,6 +365,5 @@ Import-CSV $newpath | ForEach-Object {
 		$i++
 	}
 	"--------------------------------------------" + "`r`n" | Out-File $log -append
-}
 
 Write-Host "STOPPED SCRIPT"
