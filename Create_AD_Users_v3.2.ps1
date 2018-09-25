@@ -67,7 +67,6 @@ Import-CSV $newpath | ForEach-Object {
 	$userPrincipalName = $sam+"@"+$dnsroot
 
 	#poperties that will be imported from template user ($CopyUserFrom) when necessary.
-	#$propertiesImported = @("department", "title", "description", "distinguishedName", "physicalDeliveryOfficeName", "streetAddress", "l", "postalCode", "st", "co", "company", "manager")
 	$propertiesImported = @("l", "company", "c", "department", "description", "wWWHomePage", "manager", "physicalDeliveryOfficeName", "o", "postOfficeBox", "postalCode", "st", "streetAddress", "title")
 	#as well as group memberhips at the time of replication.
 	
@@ -131,15 +130,15 @@ Import-CSV $newpath | ForEach-Object {
 			
 			$exists = Get-ADUser -Identity $CopyUserFrom -Properties $propertiesImported
 			
-			If($exists.l -ne '' -and $exists.l -ne $null) { $propertiesToExport.Add("l",$exists.l) }
+			If($exists.l -ne '' -and $exists.l -ne $null) { $propertiesToExport.Add("city",$exists.l) }
 			If($exists.company -ne '' -and $exists.company -ne $null) { $propertiesToExport.Add("company",$exists.company) }
-			If($exists.c -ne '' -and $exists.c -ne $null) { $propertiesToExport.Add("Country",$exists.c) }							#problematic
+			If($exists.c -ne '' -and $exists.c -ne $null) { $propertiesToExport.Add("Country",$exists.c) }
 			If($exists.department -ne '' -and $exists.department -ne $null) { $propertiesToExport.Add("department",$exists.department) }
 			If($exists.description -ne '' -and $exists.description -ne $null) { $propertiesToExport.Add("description",$exists.description) }
 			If($exists.wWWHomePage -ne '' -and $exists.wWWHomePage -ne $null) { $propertiesToExport.Add("HomePage",$exists.wWWHomePage) }
 			If($exists.physicalDeliveryOfficeName -ne '' -and $exists.physicalDeliveryOfficeName -ne $null) { $propertiesToExport.Add("office",$exists.physicalDeliveryOfficeName) }
-			If($exists.o -ne '' -and $exists.o -ne $null) { $propertiesToExport.Add("o",$exists.o) }
-			If($exists.postOfficeBox -ne '' -and $exists.postOfficeBox -ne $null) { $propertiesToExport.Add("postOfficeBox",$exists.postOfficeBox) }
+			If($exists.o -ne '' -and $exists.o -ne $null) { $propertiesToExport.Add("organization",$exists.o) }
+			If($exists.postOfficeBox -ne '' -and $exists.postOfficeBox -ne $null) { $propertiesToExport.Add("pobox",$exists.postOfficeBox) }
 			If($exists.postalCode -ne '' -and $exists.postalCode -ne $null) { $propertiesToExport.Add("postalCode",$exists.postalCode) }
 			If($exists.st -ne '' -and $exists.st -ne $null) { $propertiesToExport.Add("state",$exists.st) }
 			If($exists.streetAddress -ne '' -and $exists.streetAddress -ne $null) { $propertiesToExport.Add("streetAddress",$exists.streetAddress) }
@@ -188,37 +187,42 @@ Import-CSV $newpath | ForEach-Object {
 	Write-Host "proceeding with user modification (if any) from rest of the attributes in .csv`r`n"
 	(insertTimeStamp) + "proceeding with user modification (if any) from rest of the attributes in .csv" | Out-File $log -append	
 
-	#If($Email -ne '' -and $Email -ne $null) { $propertiesToExport.Add("mail",$Email) }
-	If($Department -ne '' -and $Department -ne $null) { $propertiesToExport.Add("department",$Department) }
-	If($Title -ne '' -and $Title -ne $null) { $propertiesToExport.Add("title",$Title) }
-	#If($Phone -ne '' -and $Phone -ne $null) { $propertiesToExport.Add("telephoneNumber",$Phone) }
-	If($Description -ne '' -and $Description -ne $null) { $propertiesToExport.Add("description",$Description) }
-	#If($PasswordNeverExpires -eq "true") { $propertiesToExport.Add("??",$True) }
-	
-	#If($OfficeName -ne '' -and $OfficeName -ne $null) { $propertiesToExport.Add("physicalDeliveryOfficeName",$OfficeName) }
-	#If($StreetAddress -ne '' -and $StreetAddress -ne $null) { $propertiesToExport.Add("streetAddress",$StreetAddress) }
-	#If($City -ne '' -and $City -ne $null) { $propertiesToExport.Add("l",$City) }
-	#If($PostalCode -ne '' -and $PostalCode -ne $null) { $propertiesToExport.Add("postalCode",$PostalCode) }
-	#If($State -ne '' -and $State -ne $null) { $propertiesToExport.Add("st",$State) }
+	$propertiesToExport2 = @{}
 
-	#If($Country -eq "Australia") {$Country = "NL"} Else { $Country = "EN" }
-	#If($Country -ne '' -and $Country -ne $null) { $propertiesToExport.Add("co",$Country) }
+#---------------------------------------------------------------------------------------------	
 
-	#If($Company -ne '' -and $Company -ne $null) { $propertiesToExport.Add("company",$Company) }
-	#If($ProfilePath -ne '' -and $ProfilePath -ne $null) { $propertiesToExport.Add("profilePath",$ProfilePath) }
-	#If($ScriptPath -ne '' -and $ScriptPath -ne $null) { $propertiesToExport.Add("scriptPath",$ScriptPath) }
-	#$HomeDirectory = $_.HomeDirectory.Trim()
-	#$HomeDrive = $_.HomeDrive.Trim()
-	#$ProxyAddresses = $_.ProxyAddresses.Trim()
+	If($Email -ne '' -and $Email -ne $null) { $propertiesToExport2.Add("mail",$Email) }
+	If($Department -ne '' -and $Department -ne $null) { $propertiesToExport2.Add("department",$Department) }
+	If($Title -ne '' -and $Title -ne $null) { $propertiesToExport2.Add("title",$Title) }
+	If($Phone -ne '' -and $Phone -ne $null) { $propertiesToExport2.Add("telephoneNumber",$Phone) }
+	If($Description -ne '' -and $Description -ne $null) { $propertiesToExport2.Add("description",$Description) }
+	If($PasswordNeverExpires -eq "true") { $propertiesToExport2.Add("??",$True) }
+	#accountIsEnabled done below
+	#Manager  done below
+	#TargetOU  done below
+	If($OfficeName -ne '' -and $OfficeName -ne $null) { $propertiesToExport2.Add("physicalDeliveryOfficeName",$OfficeName) }
+	If($StreetAddress -ne '' -and $StreetAddress -ne $null) { $propertiesToExport2.Add("streetAddress",$StreetAddress) }
+	If($City -ne '' -and $City -ne $null) { $propertiesToExport2.Add("l",$City) }
+	If($PostalCode -ne '' -and $PostalCode -ne $null) { $propertiesToExport2.Add("postalCode",$PostalCode) }
+	If($State -ne '' -and $State -ne $null) { $propertiesToExport2.Add("st",$State) }
+	If($Country -eq "Australia") {$Country = "NL"} Else { $Country = "EN" }
+	If($Country -ne '' -and $Country -ne $null) { $propertiesToExport2.Add("co",$Country) }
+	If($Company -ne '' -and $Company -ne $null) { $propertiesToExport2.Add("company",$Company) }
+	If($ProfilePath -ne '' -and $ProfilePath -ne $null) { $propertiesToExport2.Add("profilePath",$ProfilePath) }
+	If($ScriptPath -ne '' -and $ScriptPath -ne $null) { $propertiesToExport2.Add("scriptPath",$ScriptPath) }
+	$HomeDirectory = $_.HomeDirectory.Trim()
+	$HomeDrive = $_.HomeDrive.Trim()
+	$ProxyAddresses = $_.ProxyAddresses.Trim()
 
+#---------------------------------------------------------------------------------------------	
 	Try { $ManagerExists = Get-ADUser -LDAPFilter "(sAMAccountName=$Manager)" }
 	Catch { }
 		
-	If($ManagerExists -ne $null -and $ManagerExists -ne ''){ $propertiesToExport.Add("manager",$Manager) }
+	If($ManagerExists -ne $null -and $ManagerExists -ne ''){ $propertiesToExport2.Add("manager",$Manager) }
 
 	Try
 	{
-		Set-ADUser -identity $sam @propertiesToExport
+		Set-ADUser -identity $sam @propertiesToExport2
 		Write-Host "$($sam) set up successfully`r`n"
 		(insertTimeStamp)+"$($sam) set up successfully.." | Out-File $log -append
 		
