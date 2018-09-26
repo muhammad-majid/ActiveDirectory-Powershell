@@ -19,8 +19,6 @@ Catch
 $path     = Split-Path -parent $MyInvocation.MyCommand.Definition
 $newpath  = $path + "\import_create_ad_users.csv"
 $log      = $path + "\Batch_AD_Creation.log"
-$date     = Get-Date
-$addn     = (Get-ADDomain).DistinguishedName
 $dnsroot  = (Get-ADDomain).DNSRoot
 $i        = 1
 
@@ -30,7 +28,7 @@ $i        = 1
 
 Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
 
-Write-Host "STARTED SCRIPT`r`n"
+Write-Host "SCRIPT STARTED `r`n"
 (insertTimeStamp) + "Processing started.." | Out-File $log -append
 "--------------------------------------------" | Out-File $log -append
 
@@ -44,6 +42,7 @@ Import-CSV $newpath | ForEach-Object {
 	$Department = $_.Department.Trim()
 	$Title = $_.Title.Trim()
 	$Phone = $_.Phone.TrimStart('0')
+	$Mobile = $_.Mobile.TrimStart('0')
 	$Description = $_.Description.Trim()
 	$PasswordNeverExpires = $_.PasswordNeverExpires.ToLower()
 	$AccountIsEnabled = $_.AccountIsEnabled.ToLower()
@@ -54,7 +53,7 @@ Import-CSV $newpath | ForEach-Object {
 	$City = $_.City
 	$PostalCode = $_.PostalCode
 	$State = $_.State.Trim()
-	$Country = $_.Country.Trim()
+	$Country = ($_.Country.Trim()).toLower()
 	$Company = $_.Company.Trim()
 	$ProfilePath = $_.ProfilePath.Trim()
 	$ScriptPath = $_.ScriptPath.Trim()
@@ -78,8 +77,9 @@ Import-CSV $newpath | ForEach-Object {
 	#if first name, last name or password are missing, skip move to next iteration.
 	If ($GivenName -eq '' -Or $GivenName -eq $null -Or $LastName -eq '' -Or $LastName -eq $null -Or $_.Password -eq '' -Or $_.Password -eq $null)
 	{
-		Write-Host "[ERROR]`t Please provide valid GivenName, LastName and Password. Processing skipped for line $($i)`r`n"
-		(insertTimeStamp) + "[ERROR]`t Please provide valid GivenName, LastName and Password. Processing skipped for line $($i)`r`n" | Out-File $log -append
+		Write-Host "[WARNING]`t Please provide valid GivenName, LastName and Password.`r`nProcessing skipped for Record $($i) : $($Name)`r`n"
+		(insertTimeStamp) + "[WARNING]`t Please provide valid GivenName, LastName and Password" | Out-File $log -append
+		(insertTimeStamp) + "Processing skipped for Record $($i) : $($Name)" | Out-File $log -append
 		$i++
 		return
 	}
@@ -89,10 +89,9 @@ Import-CSV $newpath | ForEach-Object {
 	Catch { }
 	If($exists -ne $null -and $exists -ne '')		#if account already exists, skip and move to next iteration.
 	{
-		Write-Host "$($sam) already exists in AD..`r`n"
-		Write-Host "skipping to next iteration..`r`n"
-		(insertTimeStamp) + "Template user found in AD as $($CopyUserFrom).." | Out-File $log -append
-		(insertTimeStamp) + "skipping to next iteration.."
+		Write-Host "[WARNING]`t Record $($i) : $($sam) already exists in AD..`r`n Skipping to next iteration..`r`n"
+		(insertTimeStamp) + "[WARNING]`t Record $($i): $($sam) already exists in AD.." | Out-File $log -append
+		(insertTimeStamp) + "Skipping to next iteration.." | Out-File $log -append
 		$i++
 		return
 	}
@@ -100,20 +99,11 @@ Import-CSV $newpath | ForEach-Object {
 
 	Write-Host "Creating User`r`n"
 	(insertTimeStamp) + "Creating User.." | Out-File $log -append
-	New-ADuser -sAMAccountName $sam -Name $Name -GivenName $GivenName -Surname $LastName -DisplayName $Name -AccountPassword $Password
+	New-ADuser -sAMAccountName $sam -UserPrincipalName $userPrincipalName -Name $Name -GivenName $GivenName -Surname $LastName -DisplayName $Name -AccountPassword $Password
 	Write-Host "$($sam) created successfully`r`n"
 	(insertTimeStamp) + "$($sam) created successfully.." | Out-File $log -append
 	$propertiesToExport = @{}
-	<#$propertiesToExport = @{
-			"givenName"=$GivenName
-			"surname"=$LastName
-			#"name"=$Name
-			"displayName"=$Name
-			"UserPrincipalName"=$userPrincipalName
-			#"AccountPassword"=$Password
-			}
-	#>
-	
+		
 	If ($CopyUserFrom -ne $null -and $CopyUserFrom -ne '')				#if csv has template for the new user
 	{
 		Write-Host "Looking for Template $($CopyUserFrom) in AD..`r`n"		
@@ -123,7 +113,6 @@ Import-CSV $newpath | ForEach-Object {
 		
 		If($exists)					#if the template exists, copy from template first, then continue from csv entries.
 		{
-		
 			Write-Host "Template user found in AD as $($CopyUserFrom)..`r`nAttempting to copy...`r`n"
 			(insertTimeStamp) + "Template user found in AD as $($CopyUserFrom).." | Out-File $log -append
 			(insertTimeStamp) + "Attempting to copy.." | Out-File $log -append
@@ -132,7 +121,7 @@ Import-CSV $newpath | ForEach-Object {
 			
 			If($exists.l -ne '' -and $exists.l -ne $null) { $propertiesToExport.Add("city",$exists.l) }
 			If($exists.company -ne '' -and $exists.company -ne $null) { $propertiesToExport.Add("company",$exists.company) }
-			If($exists.c -ne '' -and $exists.c -ne $null) { $propertiesToExport.Add("Country",$exists.c) }
+			If($exists.c -ne '' -and $exists.c -ne $null) { $propertiesToExport.Add("country",$exists.c) }
 			If($exists.department -ne '' -and $exists.department -ne $null) { $propertiesToExport.Add("department",$exists.department) }
 			If($exists.description -ne '' -and $exists.description -ne $null) { $propertiesToExport.Add("description",$exists.description) }
 			If($exists.wWWHomePage -ne '' -and $exists.wWWHomePage -ne $null) { $propertiesToExport.Add("HomePage",$exists.wWWHomePage) }
@@ -146,12 +135,17 @@ Import-CSV $newpath | ForEach-Object {
 			
 			$TemplateOU = (Get-AdUser $CopyUserFrom).distinguishedName.Split(',',2)[1]	#get the OU template is in
 			
+			Write-Host "Below properties will be copied over from $($CopyUserFrom)..`r`n"
+			Write-Host "$($PropertiesToExport.Values)..`r`n"
+			(insertTimeStamp) + "Below properties will be copied over from $($CopyUserFrom).." | Out-File $log -append
+			(insertTimeStamp) + "$($PropertiesToExport.Values)" | Out-File $log -append
+		
 			Try
 			{
-				#Set-aduser -Identity $sam -Department $CopyUserFrom.department -title $CopyUserFrom.title -description $CopyUserFrom.description -path $CopyUserFrom.path -physicalDeliveryOfficeName $CopyUserFrom.physicalDeliveryOfficeName -streetAddress $CopyUserFrom.streetAddress -l $CopyUserFrom.l -postalCode $CopyUserFrom.postalCode -st $CopyUserFrom.st -co $CopyUserFrom.co -company $CopyUserFrom.company -manager $CopyUserFrom.manager -ErrorAction Stop write host "Success"
 				Set-ADUser -identity $sam @propertiesToExport
 				Write-Host "All properties copied successfully from $($CopyUserFrom) successfully`r`n"
 				(insertTimeStamp)+"All properties copied successfully from $($CopyUserFrom) successfully.." | Out-File $log -append
+
 				Get-AdUser -Identity $sam | Move-ADObject -TargetPath $TemplateOU
 				Write-Host "[INFO]`t User $sam moved to target OU : $($TemplateOU)"
 				(insertTimeStamp) + "[INFO]`t User $sam moved to target OU : $($TemplateOU)" | Out-File $log -append
@@ -180,33 +174,36 @@ Import-CSV $newpath | ForEach-Object {
 	else						#if csv has no template entry, notify and continue from csv entries.
 	{
 		Write-Host "No Template to copy from in .csv`r`n"		
-		(insertTimeStamp) + "No Template to copy from in .csv`r`n.." | Out-File $log -append
+		(insertTimeStamp) + "No Template to copy from in .csv.." | Out-File $log -append
 	}
 
 					#continuing from csv entries...
-	Write-Host "proceeding with user modification (if any) from rest of the attributes in .csv`r`n"
-	(insertTimeStamp) + "proceeding with user modification (if any) from rest of the attributes in .csv" | Out-File $log -append	
+	Write-Host "proceeding with user modification (if any) from rest of the entries in .csv file`r`n"
+	(insertTimeStamp) + "proceeding with user modification (if any) from rest of the attributes in .csv file.." | Out-File $log -append	
 
 	$propertiesToExport2 = @{}
 
 #---------------------------------------------------------------------------------------------	
 
-	If($Email -ne '' -and $Email -ne $null) { $propertiesToExport2.Add("mail",$Email) }
+	If($Email -ne '' -and $Email -ne $null) { $propertiesToExport2.Add("emailaddress",$Email) }
 	If($Department -ne '' -and $Department -ne $null) { $propertiesToExport2.Add("department",$Department) }
 	If($Title -ne '' -and $Title -ne $null) { $propertiesToExport2.Add("title",$Title) }
-	If($Phone -ne '' -and $Phone -ne $null) { $propertiesToExport2.Add("telephoneNumber",$Phone) }
+	If($Phone -ne '' -and $Phone -ne $null) { $propertiesToExport2.Add("OfficePhone",$Phone) }
+	If($Mobile -ne '' -and $Mobile -ne $null) { $propertiesToExport2.Add("mobilephone",$Mobile) }
 	If($Description -ne '' -and $Description -ne $null) { $propertiesToExport2.Add("description",$Description) }
-	If($PasswordNeverExpires -eq "true") { $propertiesToExport2.Add("??",$True) }
+	If($PasswordNeverExpires -eq "true") { $propertiesToExport2.Add("passwordneverexpires",$True) }
 	#accountIsEnabled done below
 	#Manager  done below
 	#TargetOU  done below
-	If($OfficeName -ne '' -and $OfficeName -ne $null) { $propertiesToExport2.Add("physicalDeliveryOfficeName",$OfficeName) }
+	If($OfficeName -ne '' -and $OfficeName -ne $null) { $propertiesToExport2.Add("Office",$OfficeName) }
 	If($StreetAddress -ne '' -and $StreetAddress -ne $null) { $propertiesToExport2.Add("streetAddress",$StreetAddress) }
-	If($City -ne '' -and $City -ne $null) { $propertiesToExport2.Add("l",$City) }
+	If($City -ne '' -and $City -ne $null) { $propertiesToExport2.Add("city",$City) }
 	If($PostalCode -ne '' -and $PostalCode -ne $null) { $propertiesToExport2.Add("postalCode",$PostalCode) }
-	If($State -ne '' -and $State -ne $null) { $propertiesToExport2.Add("st",$State) }
-	If($Country -eq "Australia") {$Country = "NL"} Else { $Country = "EN" }
-	If($Country -ne '' -and $Country -ne $null) { $propertiesToExport2.Add("co",$Country) }
+	If($State -ne '' -and $State -ne $null) { $propertiesToExport2.Add("state",$State) }
+
+	If($Country -eq "australia") {$Country = "AU"} Else { $Country = "EN" }
+	If($Country -ne '' -and $Country -ne $null) { $propertiesToExport2.Add("country",$Country) }
+
 	If($Company -ne '' -and $Company -ne $null) { $propertiesToExport2.Add("company",$Company) }
 	If($ProfilePath -ne '' -and $ProfilePath -ne $null) { $propertiesToExport2.Add("profilePath",$ProfilePath) }
 	If($ScriptPath -ne '' -and $ScriptPath -ne $null) { $propertiesToExport2.Add("scriptPath",$ScriptPath) }
@@ -219,6 +216,11 @@ Import-CSV $newpath | ForEach-Object {
 	Catch { }
 		
 	If($ManagerExists -ne $null -and $ManagerExists -ne ''){ $propertiesToExport2.Add("manager",$Manager) }
+
+	Write-Host "Below properties will be copied over based on csv entries..`r`n"
+	Write-Host "$($PropertiesToExport2.Values)..`r`n"
+	(insertTimeStamp) + "Below properties will be copied over based on csv entries.." | Out-File $log -append
+	(insertTimeStamp) + "$($PropertiesToExport2.Values)" | Out-File $log -append
 
 	Try
 	{
@@ -245,141 +247,23 @@ Import-CSV $newpath | ForEach-Object {
 		}
 		Else
 		{
-		  Write-Host "[ERROR]`t Targeted OU $($TargetOU) couldn't be found. Newly created user wasn't moved!"
-		  "[ERROR]`t Targeted OU $($TargetOU) couldn't be found. Newly created user wasn't moved!" | Out-File $log -append
+		  Write-Host "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!"
+		  "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!" | Out-File $log -append
 		}
 	}
 	
 	Catch
 	{
-		#Write-Host "[ERROR]`t Oops, something went wrong: $($_.Exception.Message)`r`n"
-		Write-Host "[ERROR]`t Oops, something went wrong: $($_)`r`n"
+		Write-Host "[ERROR]`t Oops, something went wrong: $($_.Exception.Message)`r`n"
 		(insertTimeStamp)+"Oops, something went wrong: $($_.Exception.Message)" | Out-File $log -append
 	}
 
-	#$newdn = (Get-ADUser $sam).DistinguishedName
-	#Rename-ADObject -Identity $newdn -NewName ($GivenName + " " + $LastName)
-	#Write-Host "$($sam) renamed to include a space`r`n"
-	#(insertTimeStamp)+"$($sam) renamed to include a space.." | Out-File $log -append
-
-	<#
-	"Instance"=$template_obj
-
-	"DisplayName"=$name
-	"GivenName"=$givenname
-	"SurName"=$surname
-	"AccountPassword"=$password_ss
-	"Enabled"=$enabled
-	"ChangePasswordAtLogon"=$changepw
-	}
-	#>
-
-		# Set the Enabled and PasswordNeverExpires properties
+	
 		
-		
-
-		# A check for the country, because those were full names and need
-		# to be land codes in order for AD to accept them. I used Netherlands
-		# as example
-		#If($Country -eq "Netherlands") {$Country = "NL"} Else { $Country = "EN" }
-		
-		# Replace dots / points (.) in names, because AD will error when a
-		# name ends with a dot (and it looks cleaner as well)
-		#$replace = $Lastname.Replace(".","")
-		
-		#Write-Host "Applying naming convention to get username to be created..`r`n"
-		#(insertTimeStamp) + "Applying naming convention to get username to be created.." | Out-File $log -append
-				
-		# Create sAMAccountName according to this 'naming convention':
-		# <FirstLetterInitials><FirstFourLettersLastName> for example
-		#$sam = $Initials.substring(0,1).ToLower() + $lastname.ToLower()
-		<#
-		Try   { $exists = Get-ADUser -LDAPFilter "(sAMAccountName=$sam)" }
-		Catch {	}
-		
-		If($exists)
-		{
-			Write-Host "[SKIP]`t User $($sam) ($($GivenName) $($LastName)) already exists or returned an error!`r`n"
-			Write-Host "No changes applied - skipping to next iteration`r`n"
-			(insertTimeStamp) + "[SKIP]`t User $($sam) ($($GivenName) $($LastName)) already exists or returned an error!" | Out-File $log -append
-			(insertTimeStamp) + "No changes applied - skipping to next iteration.." | Out-File $log -append
-			$i++
-			return
-		}
-		
-		  # Set all variables according to the table names in the Excel
-		  # sheet / import CSV. The names can differ in every project, but
-		  # if the names change, make sure to change it below as well.
-		  #$setpass = ConvertTo-SecureString -AsPlainText $Password -force
-
-		  Try
-		  {
-			Write-Host "[INFO]`t Creating user : $($sam)"
-			(insertTimeStamp) + "[INFO]`t Creating user : $($sam)" | Out-File $log -append
-			New-ADUser $sam -GivenName $GivenName -Initials $Initials `
-			-Surname $LastName -DisplayName ($GivenName + " " + $LastName) `
-			-Office $OfficeName -Description $Description -EmailAddress $Mail `
-			-StreetAddress $StreetAddress -City $City -State $State `
-			-PostalCode $PostalCode -Country $Country -UserPrincipalName ($sam + "@" + $dnsroot) `
-			-Company $Company -Department $Department -EmployeeID $EmployeeID `
-			-Title $Title -OfficePhone $Phone -AccountPassword $setpass -Manager $Manager `
-			-profilePath $ProfilePath -scriptPath $ScriptPath -homeDirectory $HomeDirectory `
-			-homeDrive $homeDrive -Enabled $enabled -PasswordNeverExpires $expires
-			Write-Host "[INFO]`t Created new user : $($sam)"
-			(insertTimeStamp) + "[INFO]`t Created new user : $($sam)" | Out-File $log -append
-
-			$dn = (Get-ADUser $sam).DistinguishedName
-			# Set an ExtensionAttribute
-			If ($ExtensionAttribute1 -ne "" -And $ExtensionAttribute1 -ne $Null)
-			{
-			  $ext = [ADSI]"LDAP://$dn"
-			  $ext.Put("extensionAttribute1", $ExtensionAttribute1)
-			  Try   { $ext.SetInfo() }
-			  Catch { Write-Host "[ERROR]`t Couldn't set the Extension Attribute : $($_.Exception.Message)" }
-			}
-
-			# Set ProxyAdresses
-			If ($proxyAddresses -ne "")
-			{
-			  Try { $dn | Set-ADUser -Add @{proxyAddresses = ($ProxyAddresses -split ";")} -ErrorAction Stop }
-			  Catch { Write-Host "[ERROR]`t Couldn't set the ProxyAddresses Attributes : $($_.Exception.Message)" }
-			}
-
-			# Move the user to the OU ($location) you set above. If you don't
-			# want to move the user(s) and just create them in the global Users
-			# OU, comment the string below
-			If ([adsi]::Exists("LDAP://$($location)"))
-			{
-			  Move-ADObject -Identity $dn -TargetPath $location
-			  Write-Host "[INFO]`t User $sam moved to target OU : $($location)"
-			  (insertTimeStamp) + "[INFO]`t User $sam moved to target OU : $($location)" | Out-File $log -append
-			}
-			Else
-			{
-			  Write-Host "[ERROR]`t Targeted OU couldn't be found. Newly created user wasn't moved!"
-			  (insertTimeStamp) + "[ERROR]`t Targeted OU couldn't be found. Newly created user wasn't moved!" | Out-File $log -append
-			}
-
-			# Rename the object to a good looking name (otherwise you see
-			# the 'ugly' shortened sAMAccountNames as a name in AD. This
-			# can't be set right away (as sAMAccountName) due to the 20
-			# character restriction
-			$newdn = (Get-ADUser $sam).DistinguishedName
-			Rename-ADObject -Identity $newdn -NewName ($GivenName + " " + $LastName)
-			Write-Host "[INFO]`t Renamed $($sam) to $($GivenName) $($LastName)`r`n"
-			(insertTimeStamp) + "[INFO]`t Renamed $($sam) to $($GivenName) $($LastName)`r`n" | Out-File $log -append
-			
-		  }
-		  Catch
-		  {
-			Write-Host "[ERROR]`t Oops, something went wrong: $($_.Exception.Message)`r`n"
-		  }
-		  
-		 #>
 		Write-Host "Moving to next iteration`r`n"
 		(insertTimeStamp) + "Moving to next iteration`r`n" | Out-File $log -append
 		$i++
 	}
 	"--------------------------------------------" + "`r`n" | Out-File $log -append
 
-Write-Host "STOPPED SCRIPT"
+Write-Host "SCRIPT STOPPED"
