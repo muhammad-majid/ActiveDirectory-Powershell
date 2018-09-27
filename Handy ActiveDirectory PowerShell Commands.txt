@@ -5,6 +5,10 @@ redircmp 'OU=Workstations,OU=Emirates Steel,DC=eisf,DC=co,DC=ae
 Get-ADUser -Filter {Enabled -eq $true} | .\getGroups.ps1 | Export-CSV C:\Scripts\UserMembers.csv
 Get-ADUser -Filter * | Select Name, SamAccountName, @{n='OU';e={$_.distinguishedname -replace '^.+?,(CN|OU.+)','$1'}} | Export-Csv "C:\Scripts\users.csv" -Encoding "Unicode"
 
+----Get list of all Groups a user belongs to----
+Get-ADPrincipalGroupMembership $Username | Select Name
+Get-ADPrincipalGroupMembership $Username | Select Name | Export-CSV "C:\Scripts\UserMemberships.csv" -NoTypeInformation -Encoding UTF8
+
 ----Get all Domain Controllers in the Domain----
 Get-ADDomainController -Filter * | Select-Object name
 
