@@ -39,7 +39,7 @@ $i        = 1
 Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
 
 Write-Host "SCRIPT STARTED `r`n"
-(insertTimeStamp) + "Create AD Users in batches from CSV - v3.3" | Out-File $log -append
+(insertTimeStamp) + "Create AD Users in batches from CSV - v3.4" | Out-File $log -append
 (insertTimeStamp) + "Created by Muhammad Majid, HuonIT.." | Out-File $log -append
 (insertTimeStamp) + "Processing started.." | Out-File $log -append
 "--------------------------------------------" | Out-File $log -append
@@ -84,6 +84,7 @@ Import-CSV $newpath | ForEach-Object {
 	
 	Write-Host "Running iteration $i for $GivenName $LastName`r`n"
 	Write-Host "Subject username is $($sam)`r`n"
+	"" | Out-File $log -append
 	(insertTimeStamp) + "Running iteration $i for $GivenName $LastName .." | Out-File $log -append
 	(insertTimeStamp) + "Subject username is $($sam).." | Out-File $log -append
 
@@ -132,33 +133,103 @@ Import-CSV $newpath | ForEach-Object {
 			
 			$exists = Get-ADUser -Identity $CopyUserFrom -Properties $propertiesImported
 			
-			If($exists.l -ne '' -and $exists.l -ne $null) { $propertiesToExport.Add("city",$exists.l) }
-			If($exists.company -ne '' -and $exists.company -ne $null) { $propertiesToExport.Add("company",$exists.company) }
-			If($exists.c -ne '' -and $exists.c -ne $null) { $propertiesToExport.Add("country",$exists.c) }
-			If($exists.department -ne '' -and $exists.department -ne $null) { $propertiesToExport.Add("department",$exists.department) }
-			If($exists.description -ne '' -and $exists.description -ne $null) { $propertiesToExport.Add("description",$exists.description) }
-			If($exists.wWWHomePage -ne '' -and $exists.wWWHomePage -ne $null) { $propertiesToExport.Add("HomePage",$exists.wWWHomePage) }
-			If($exists.physicalDeliveryOfficeName -ne '' -and $exists.physicalDeliveryOfficeName -ne $null) { $propertiesToExport.Add("office",$exists.physicalDeliveryOfficeName) }
-			If($exists.o -ne '' -and $exists.o -ne $null) { $propertiesToExport.Add("organization",$exists.o) }
-			#If($exists.postOfficeBox -ne '' -and $exists.postOfficeBox -ne $null) { $propertiesToExport.Add("pobox",$exists.postOfficeBox) }
-			If($exists.postalCode -ne '' -and $exists.postalCode -ne $null) { $propertiesToExport.Add("postalCode",$exists.postalCode) }
-			If($exists.st -ne '' -and $exists.st -ne $null) { $propertiesToExport.Add("state",$exists.st) }
-			If($exists.streetAddress -ne '' -and $exists.streetAddress -ne $null) { $propertiesToExport.Add("streetAddress",$exists.streetAddress) }
-			If($exists.title -ne '' -and $exists.title -ne $null) { $propertiesToExport.Add("title",$exists.title) }
+			Try {
 			
-			$TemplateOU = (Get-AdUser $CopyUserFrom).distinguishedName.Split(',',2)[1]	#get the OU template is in
-			
-			Write-Host "Below properties will be copied over from $($CopyUserFrom)..`r`n"
-			(insertTimeStamp) + "Below properties will be copied over from $($CopyUserFrom).." | Out-File $log -append
-			
-			$PropertiesToExport.GetEnumerator() | ForEach-Object {
-				Write-Host "        Key: $($_.Key), Value: $($_.Value)"
-				(insertTimeStamp) + "        Key: $($_.Key), Value: $($_.Value)" | Out-File $log -append
-			}
-		
-			Try
-			{
-				Set-ADUser -identity $sam @propertiesToExport
+				If($exists.l -ne '' -and $exists.l -ne $null)
+				{
+					Set-ADUser -identity $sam -city $exists.l)
+					(insertTimeStamp) + "City set successfully to: $($exists.l)" | Out-File $log -append
+				}
+				
+				If($exists.company -ne '' -and $exists.company -ne $null)
+				{
+					Set-ADUser -identity $sam -company $exists.company
+					(insertTimeStamp) + "Company set successfully to: $($exists.company)" | Out-File $log -append
+				}
+
+				If($exists.c -ne '' -and $exists.c -ne $null)
+				{
+					#$propertiesToExport.Add("country",$exists.c)
+					Set-ADUser -identity $sam -country $exists.country
+					(insertTimeStamp) + "Country set successfully to: $($exists.c)" | Out-File $log -append
+				}
+
+				If($exists.department -ne '' -and $exists.department -ne $null)
+				{
+					#$propertiesToExport.Add("department",$exists.department)
+					Set-ADUser -identity $sam -department $exists.department
+					(insertTimeStamp) + "Departemnt set successfully to: $($exists.department)" | Out-File $log -append
+				}
+
+				If($exists.description -ne '' -and $exists.description -ne $null)
+				{
+					#$propertiesToExport.Add("description",$exists.description)
+					Set-ADUser -identity $sam -description $exists.description
+					(insertTimeStamp) + "Description set successfully to: $($exists.description)" | Out-File $log -append
+				}
+
+				If($exists.wWWHomePage -ne '' -and $exists.wWWHomePage -ne $null)
+				{
+					#$propertiesToExport.Add("HomePage",$exists.wWWHomePage)
+					Set-ADUser -identity $sam -homepage $exists.wWWHomePage
+					(insertTimeStamp) + "HomePage set successfully to: $($exists.wWWHomePage)" | Out-File $log -append
+				}
+
+				If($exists.physicalDeliveryOfficeName -ne '' -and $exists.physicalDeliveryOfficeName -ne $null)
+				{
+					#$propertiesToExport.Add("office",$exists.physicalDeliveryOfficeName)
+					Set-ADUser -identity $sam -office $exists.physicalDeliveryOfficeName
+					(insertTimeStamp) + "Office set successfully to: $($exists.physicalDeliveryOfficeName)" | Out-File $log -append
+				}
+
+				If($exists.o -ne '' -and $exists.o -ne $null)
+				{
+					#$propertiesToExport.Add("organization",$exists.o)
+					Set-ADUser -identity $sam -organization $exists.o
+					(insertTimeStamp) + "Organization set successfully to: $($exists.o)" | Out-File $log -append
+				}
+
+				If($exists.postOfficeBox -ne '' -and $exists.postOfficeBox -ne $null)
+				{
+					#$propertiesToExport.Add("pobox",$exists.postOfficeBox)
+					Set-ADUser -identity $sam -pobox $exists.postOfficeBox
+					(insertTimeStamp) + "P.O Box set successfully to: $($exists.postOfficeBox)" | Out-File $log -append
+				}
+
+				If($exists.postalCode -ne '' -and $exists.postalCode -ne $null)
+				{
+					#$propertiesToExport.Add("postalCode",$exists.postalCode)
+					Set-ADUser -identity $sam -postalCode $exists.postalCode
+					(insertTimeStamp) + "Postal Code set successfully to: $($exists.postalCode)" | Out-File $log -append
+				}
+
+				If($exists.st -ne '' -and $exists.st -ne $null)
+				{
+					#$propertiesToExport.Add("state",$exists.st)
+					Set-ADUser -identity $sam -state $exists.st
+					(insertTimeStamp) + "State set successfully to: $($exists.st)" | Out-File $log -append
+				}
+
+				If($exists.streetAddress -ne '' -and $exists.streetAddress -ne $null)
+				{
+					#$propertiesToExport.Add("streetAddress",$exists.streetAddress)
+					Set-ADUser -identity $sam -streetAddress $exists.streetAddress
+					(insertTimeStamp) + "Street Address set successfully to: $($exists.streetAddress)" | Out-File $log -append
+				}
+
+				If($exists.title -ne '' -and $exists.title -ne $null)
+				{
+					#$propertiesToExport.Add("title",$exists.title)
+					Set-ADUser -identity $sam -title $exists.title
+					(insertTimeStamp) + "Job Title set successfully to: $($exists.title)" | Out-File $log -append
+				}
+				
+				$TemplateOU = (Get-AdUser $CopyUserFrom).distinguishedName.Split(',',2)[1]	#get the OU template is in
+				
+				#Write-Host "Below properties will be copied over from $($CopyUserFrom)..`r`n"
+				#(insertTimeStamp) + "Below properties will be copied over from $($CopyUserFrom).." | Out-File $log -append
+				
+				#Set-ADUser -identity $sam @propertiesToExport
 				Write-Host "All properties copied successfully from $($CopyUserFrom) successfully`r`n"
 				(insertTimeStamp)+"All properties copied successfully from $($CopyUserFrom) successfully.." | Out-File $log -append
 
@@ -197,7 +268,6 @@ Import-CSV $newpath | ForEach-Object {
 	(insertTimeStamp) + "proceeding with user modification (if any) from rest of the attributes in .csv file.." | Out-File $log -append	
 
 	$propertiesToExport2 = @{}
-
 #---------------------------------------------------------------------------------------------	
 
 	If($Email -ne '' -and $Email -ne $null) { $propertiesToExport2.Add("emailaddress",$Email) }
@@ -281,7 +351,6 @@ Import-CSV $newpath | ForEach-Object {
 		Write-Host "Moving to next iteration`r`n"
 		(insertTimeStamp) + "Moving to next iteration`r`n" | Out-File $log -append
 		$i++
-	}
 	"--------------------------------------------" + "`r`n" | Out-File $log -append
 
 Write-Host "SCRIPT STOPPED"

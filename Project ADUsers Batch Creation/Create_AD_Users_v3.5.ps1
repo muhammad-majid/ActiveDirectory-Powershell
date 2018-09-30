@@ -30,7 +30,7 @@ $path     = Split-Path -parent $MyInvocation.MyCommand.Definition
 $newpath  = $path + "\import_create_ad_users.csv"
 $log      = $path + "\Batch_AD_Creation.log"
 $dnsroot  = (Get-ADDomain).DNSRoot
-$i        = 1
+$i        = 0
 
 #----------------------------------------------------------
 #START FUNCTIONS
@@ -39,14 +39,15 @@ $i        = 1
 Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
 
 Write-Host "SCRIPT STARTED `r`n"
-(insertTimeStamp) + "Create AD Users in batches from CSV - v3.3" | Out-File $log -append
+(insertTimeStamp) + "Create AD Users in batches from CSV - v3.5" | Out-File $log -append
 (insertTimeStamp) + "Created by Muhammad Majid, HuonIT.." | Out-File $log -append
 (insertTimeStamp) + "Processing started.." | Out-File $log -append
 "--------------------------------------------" | Out-File $log -append
 "--------------------------------------------" | Out-File $log -append
 
 Import-CSV $newpath | ForEach-Object {
-
+	
+	$i++;
 	$GivenName = $_.GivenName.Trim()
 	$LastName = $_.LastName.Trim()
 	$CopyUserFrom = $_.CopyUserFrom.Trim()
@@ -79,12 +80,13 @@ Import-CSV $newpath | ForEach-Object {
 	$userPrincipalName = $sam+"@"+$dnsroot
 
 	#poperties that will be imported from template user ($CopyUserFrom) when necessary.
-	$propertiesImported = @("l", "company", "c", "department", "description", "wWWHomePage", "manager", "physicalDeliveryOfficeName", "o", "postOfficeBox", "postalCode", "st", "streetAddress", "title")
+	$propertiesImported = @("l", "company", "c", "department", "description", "wWWHomePage", "manager", "physicalDeliveryOfficeName", "postOfficeBox", "postalCode", "st", "streetAddress", "title", "enabled")
 	#as well as group memberhips at the time of replication.
 	
 	Write-Host "Running iteration $i for $GivenName $LastName`r`n"
 	Write-Host "Subject username is $($sam)`r`n"
-	(insertTimeStamp) + "Running iteration $i for $GivenName $LastName .." | Out-File $log -append
+	"" | Out-File $log -append
+	(insertTimeStamp) + "Running iteration $i [$GivenName $LastName] .." | Out-File $log -append
 	(insertTimeStamp) + "Subject username is $($sam).." | Out-File $log -append
 
 	#if first name, last name or password are missing, skip move to next iteration.
@@ -93,7 +95,6 @@ Import-CSV $newpath | ForEach-Object {
 		Write-Host "[WARNING]`t Please provide valid GivenName, LastName and Password.`r`nProcessing skipped for Record $($i) : $($Name)`r`n"
 		(insertTimeStamp) + "[WARNING]`t Please provide valid GivenName, LastName and Password" | Out-File $log -append
 		(insertTimeStamp) + "Processing skipped for Record $($i) : $($Name)" | Out-File $log -append
-		$i++
 		return
 	}
 
@@ -105,7 +106,6 @@ Import-CSV $newpath | ForEach-Object {
 		Write-Host "[WARNING]`t Record $($i) : $($sam) already exists in AD..`r`n Skipping to next iteration..`r`n"
 		(insertTimeStamp) + "[WARNING]`t Record $($i): $($sam) already exists in AD.." | Out-File $log -append
 		(insertTimeStamp) + "Skipping to next iteration.." | Out-File $log -append
-		$i++
 		return
 	}
 			
@@ -126,53 +126,130 @@ Import-CSV $newpath | ForEach-Object {
 		
 		If($exists)					#if the template exists, copy from template first, then continue from csv entries.
 		{
-			Write-Host "Template user found in AD as $($CopyUserFrom)..`r`nAttempting to copy...`r`n"
-			(insertTimeStamp) + "Template user found in AD as $($CopyUserFrom).." | Out-File $log -append
-			(insertTimeStamp) + "Attempting to copy.." | Out-File $log -append
-			
-			$exists = Get-ADUser -Identity $CopyUserFrom -Properties $propertiesImported
-			
-			If($exists.l -ne '' -and $exists.l -ne $null) { $propertiesToExport.Add("city",$exists.l) }
-			If($exists.company -ne '' -and $exists.company -ne $null) { $propertiesToExport.Add("company",$exists.company) }
-			If($exists.c -ne '' -and $exists.c -ne $null) { $propertiesToExport.Add("country",$exists.c) }
-			If($exists.department -ne '' -and $exists.department -ne $null) { $propertiesToExport.Add("department",$exists.department) }
-			If($exists.description -ne '' -and $exists.description -ne $null) { $propertiesToExport.Add("description",$exists.description) }
-			If($exists.wWWHomePage -ne '' -and $exists.wWWHomePage -ne $null) { $propertiesToExport.Add("HomePage",$exists.wWWHomePage) }
-			If($exists.physicalDeliveryOfficeName -ne '' -and $exists.physicalDeliveryOfficeName -ne $null) { $propertiesToExport.Add("office",$exists.physicalDeliveryOfficeName) }
-			If($exists.o -ne '' -and $exists.o -ne $null) { $propertiesToExport.Add("organization",$exists.o) }
-			#If($exists.postOfficeBox -ne '' -and $exists.postOfficeBox -ne $null) { $propertiesToExport.Add("pobox",$exists.postOfficeBox) }
-			If($exists.postalCode -ne '' -and $exists.postalCode -ne $null) { $propertiesToExport.Add("postalCode",$exists.postalCode) }
-			If($exists.st -ne '' -and $exists.st -ne $null) { $propertiesToExport.Add("state",$exists.st) }
-			If($exists.streetAddress -ne '' -and $exists.streetAddress -ne $null) { $propertiesToExport.Add("streetAddress",$exists.streetAddress) }
-			If($exists.title -ne '' -and $exists.title -ne $null) { $propertiesToExport.Add("title",$exists.title) }
-			
-			$TemplateOU = (Get-AdUser $CopyUserFrom).distinguishedName.Split(',',2)[1]	#get the OU template is in
-			
-			Write-Host "Below properties will be copied over from $($CopyUserFrom)..`r`n"
-			(insertTimeStamp) + "Below properties will be copied over from $($CopyUserFrom).." | Out-File $log -append
-			
-			$PropertiesToExport.GetEnumerator() | ForEach-Object {
-				Write-Host "        Key: $($_.Key), Value: $($_.Value)"
-				(insertTimeStamp) + "        Key: $($_.Key), Value: $($_.Value)" | Out-File $log -append
-			}
-		
-			Try
-			{
-				Set-ADUser -identity $sam @propertiesToExport
-				Write-Host "All properties copied successfully from $($CopyUserFrom) successfully`r`n"
-				(insertTimeStamp)+"All properties copied successfully from $($CopyUserFrom) successfully.." | Out-File $log -append
+				Write-Host "Template user found in AD as $($CopyUserFrom)..`r`nAttempting to copy...`r`n"
+				(insertTimeStamp) + "Template user found in AD as $($CopyUserFrom).." | Out-File $log -append
+				(insertTimeStamp) + "Attempting to copy.." | Out-File $log -append
+				
+				$exists = Get-ADUser -Identity $CopyUserFrom -Properties $propertiesImported
+				If($exists.l -ne '' -and $exists.l -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -city $exists.l
+                    (insertTimeStamp) + "City set successfully to: $($exists.l)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying city: $($_.Exception.Message)" | Out-File $log -append}
+				}
+				
+				If($exists.company -ne '' -and $exists.company -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -company $exists.company
+                    (insertTimeStamp) + "Company set successfully to: $($exists.company)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying company: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.c -ne '' -and $exists.c -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -country $exists.country
+                    (insertTimeStamp) + "Country set successfully to: $($exists.c)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying country: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.department -ne '' -and $exists.department -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -department $exists.department
+                    (insertTimeStamp) + "Departemnt set successfully to: $($exists.department)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying department: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.description -ne '' -and $exists.description -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -description $exists.description
+                    (insertTimeStamp) + "Description set successfully to: $($exists.description)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying description: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.wWWHomePage -ne '' -and $exists.wWWHomePage -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -homepage $exists.wWWHomePage
+                    (insertTimeStamp) + "HomePage set successfully to: $($exists.wWWHomePage)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying homepage: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.physicalDeliveryOfficeName -ne '' -and $exists.physicalDeliveryOfficeName -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -office $exists.physicalDeliveryOfficeName
+                    (insertTimeStamp) + "Office set successfully to: $($exists.physicalDeliveryOfficeName)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying office: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.postOfficeBox -ne '' -and $exists.postOfficeBox -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -pobox $exists.postOfficeBox
+                    (insertTimeStamp) + "P.O Box set successfully to: $($exists.postOfficeBox)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying POBox: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.postalCode -ne '' -and $exists.postalCode -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -postalCode $exists.postalCode
+                    (insertTimeStamp) + "Postal Code set successfully to: $($exists.postalCode)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying zip / postal code: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.st -ne '' -and $exists.st -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -state $exists.st
+                    (insertTimeStamp) + "State set successfully to: $($exists.st)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying state / province: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.streetAddress -ne '' -and $exists.streetAddress -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -streetAddress $exists.streetAddress
+                    (insertTimeStamp) + "Street Address set successfully to: $($exists.streetAddress)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying street: $($_.Exception.Message)" | Out-File $log -append}
+				}
+
+				If($exists.title -ne '' -and $exists.title -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -title $exists.title
+                    (insertTimeStamp) + "Job Title set successfully to: $($exists.title)" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying job title: $($_.Exception.Message)" | Out-File $log -append}
+                }
+                
+                If($exists.enabled -eq $true)
+				{
+					Try{ Set-ADUser -identity $sam -enabled $true
+                    (insertTimeStamp) + "Account Enabled successfully" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when enabling account: $($_.Exception.Message)" | Out-File $log -append}
+				}
+                
+                If($exists.manager -ne '' -and $exists.manager -ne $null)
+				{
+					Try{ Set-ADUser -identity $sam -manager $exists.manager
+                    (insertTimeStamp) + "Manager set successfully" | Out-File $log -append
+                    }
+                    catch{(insertTimeStamp)+"Oops, something went wrong when copying manager: $($_.Exception.Message)" | Out-File $log -append}
+				}
+                
+				$TemplateOU = (Get-AdUser $CopyUserFrom).distinguishedName.Split(',',2)[1]	#get the OU template is in
 
 				Get-AdUser -Identity $sam | Move-ADObject -TargetPath $TemplateOU
-				Write-Host "[INFO]`t User $sam moved to target OU : $($TemplateOU)"
-				(insertTimeStamp) + "[INFO]`t User $sam moved to target OU : $($TemplateOU)" | Out-File $log -append
-			}
-			
-			Catch
-			{
-				Write-Host "[ERROR]`t Oops, something went wrong when copying from template: $($_.Exception.Message)`r`n"
-				(insertTimeStamp)+"Oops, something went wrong when copying from template: $($_.Exception.Message)" | Out-File $log -append
-			}
-			
+				Write-Host "User $sam moved to target OU : $($TemplateOU)"
+				(insertTimeStamp) + "User $sam moved to target OU : $($TemplateOU)" | Out-File $log -append
+            }
+            
 			(insertTimeStamp) + "Copying group memberships from $($CopyUserFrom).." | Out-File $log -append		# copy group memberships
 			Get-ADUser -Identity $CopyUserFrom -Properties memberof | Select-Object -ExpandProperty memberof | Add-ADGroupMember -Members $sam
 			Write-Host "$($sam) replicated successfully from template $($CopyUserFrom)..`r`n"
@@ -277,11 +354,8 @@ Import-CSV $newpath | ForEach-Object {
 	}
 
 	
-		
 		Write-Host "Moving to next iteration`r`n"
 		(insertTimeStamp) + "Moving to next iteration`r`n" | Out-File $log -append
-		$i++
-	}
 	"--------------------------------------------" + "`r`n" | Out-File $log -append
 
 Write-Host "SCRIPT STOPPED"
