@@ -112,7 +112,6 @@ Import-CSV $newpath | ForEach-Object{
 		(insertTimeStamp) + "Processing skipped for Record $($i) : $($Name)" | Out-File $log -append
 		return
 	}
-			
 
 	Write-Host "Creating User`r`n"
 	(insertTimeStamp) + "Creating User.." | Out-File $log -append
@@ -283,8 +282,6 @@ Import-CSV $newpath | ForEach-Object{
 
 	$propertiesToExport2 = @{}
 
-	#---------------------------------------------------------------------------------------------	
-
 	If($Email -ne '' -and $Email -ne $null) { $propertiesToExport2.Add("emailaddress",$Email) }
 	If($Department -ne '' -and $Department -ne $null) { $propertiesToExport2.Add("department",$Department) }
 	If($Title -ne '' -and $Title -ne $null) { $propertiesToExport2.Add("title",$Title) }
@@ -302,11 +299,8 @@ Import-CSV $newpath | ForEach-Object{
 	If($State -ne '' -and $State -ne $null) { $propertiesToExport2.Add("state",$State) }
 	If($PostalCode -ne '' -and $PostalCode -ne $null) { $propertiesToExport2.Add("postalCode",$PostalCode) }
 
-	If($Country -eq "australia" -or $Country -eq '' -or $Country -eq $null)
-	{
-		$Country = "AU" #Else { $Country = "EN" }
-		$propertiesToExport2.Add("country",$Country)
-	}
+	If($Country -eq "australia" -or $Country -eq '' -or $Country -eq $null)	{ $Country = "AU" } else { $Country = "EN" }
+	$propertiesToExport2.Add("country",$Country)
 
 	If($Company -ne '' -and $Company -ne $null) { $propertiesToExport2.Add("company",$Company) }
 	If($WebPage -ne '' -and $WebPage -ne $null) { $propertiesToExport2.Add("HomePage",$WebPage) }
