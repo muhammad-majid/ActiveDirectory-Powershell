@@ -13,16 +13,6 @@ Order of execution:
 Set-StrictMode -Version latest
 
 #----------------------------------------------------------
-# LOAD ASSEMBLIES AND MODULES
-#----------------------------------------------------------
-Try { Import-Module ActiveDirectory -ErrorAction Stop }
-Catch
-{
-  Write-Host "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!"
-  Exit 1
-}
-
-#----------------------------------------------------------
 #STATIC VARIABLES
 #----------------------------------------------------------
 
@@ -33,10 +23,66 @@ $dnsroot  = (Get-ADDomain).DNSRoot
 $i        = 0
 
 #----------------------------------------------------------
+# LOAD ASSEMBLIES AND MODULES
+#----------------------------------------------------------
+
+Try { #AD
+	Import-Module ActiveDirectory -ErrorAction Stop
+	(insertTimeStamp) + "AD Module loaded successfully.." | Out-File $log -append
+	Write-Host "AD Module loaded successfully`r`n"
+ }
+Catch
+{
+	(insertTimeStamp) + "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!" | Out-File $log -append
+  	Write-Host "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!"
+  	Exit 1
+}
+
+
+Try { #EX2007
+	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin -ErrorAction Stop
+	(insertTimeStamp) + "Exchange 2007 Snapin loaded successfully.." | Out-File $log -append
+	Write-Host "Exchange 2007 Snapin loaded successfully`r`n"
+ }
+Catch
+{ 
+	(insertTimeStamp) + "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010.." | Out-File $log -append
+	write-Host "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010.."
+}
+
+
+Try { #EX2010
+	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction Stop
+	(insertTimeStamp) + "Exchange 2010 Snapin loaded successfully.." | Out-File $log -append
+	Write-Host "Exchange 2010 Snapin loaded successfully`r`n"
+}
+Catch
+{
+	(insertTimeStamp) + "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016.." | Out-File $log -append
+	Write-Host "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016`r`n"
+}
+
+
+Try { #EX2013 or EX2016
+	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn -ErrorAction Stop
+	(insertTimeStamp) + "Exchange 2013 / 2016 Snapin loaded successfully.." | Out-File $log -append
+	Write-Host "Exchange 2013 / 2016 Snapin loaded successfully`r`n"
+}
+Catch
+{
+	 Write-Host "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!`r`n"
+	 (insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!" | Out-File $log -append
+	 Exit 1
+}
+
+
+#----------------------------------------------------------
 #START FUNCTIONS
 #----------------------------------------------------------
 
 Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
+
+#----------------------------------------------------------
 
 Write-Host "SCRIPT STARTED `r`n"
 (insertTimeStamp) + "Create AD Users in batches from CSV - v3.5" | Out-File $log -append
@@ -357,4 +403,5 @@ Import-CSV $newpath | ForEach-Object{
 	(insertTimeStamp) + "Moving to next iteration" | Out-File $log -append
 }
 
+(insertTimeStamp) + "Reached End CSV file, Exiting Script.." | Out-File $log -append
 Write-Host "SCRIPT STOPPED"
