@@ -3,8 +3,8 @@ Created by Muhammad Majid, HuonIT
 Order of execution:
 01. Check FistName, Lastname and Password fields are not blank, proceed an create a new user (firstname.lastname)
 02. Once created, check copyUserFrom field, find that user, and copy all properties of that user to the newly created user.
-03. Irrespective of 'copyUserFrom' field being empty or not, proceed and modify or the newly created user with rest of the entries in the csv.
-[This means that entries in csv will overwrite the copyUserFrom properties set]
+03. Irrespective of 'copyUserFrom' field being empty or not, proceed and modify the newly created user with rest of the entries in the csv.
+[This means that entries in csv will overwrite the properties set by copyUserFrom if it was used in previous step]
 04. Log output is recorded in the same folder script was run from.
 #>
 
@@ -21,6 +21,15 @@ $newpath  = $path + "\import_create_ad_users.csv"
 $log      = $path + "\Batch_AD_Creation.log"
 $dnsroot  = (Get-ADDomain).DNSRoot
 $i        = 0
+$ExSnapin = 0
+
+#----------------------------------------------------------
+#START FUNCTIONS
+#----------------------------------------------------------
+
+Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
+
+#----------------------------------------------------------
 
 #----------------------------------------------------------
 # LOAD ASSEMBLIES AND MODULES
@@ -34,55 +43,53 @@ Try { #AD
 Catch
 {
 	(insertTimeStamp) + "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!" | Out-File $log -append
-  	Write-Host "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!"
+  	Write-Host "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!`r`n"
   	Exit 1
 }
 
-
+<#
 Try { #EX2007
 	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin -ErrorAction Stop
 	(insertTimeStamp) + "Exchange 2007 Snapin loaded successfully.." | Out-File $log -append
 	Write-Host "Exchange 2007 Snapin loaded successfully`r`n"
+	$ExSnapin=1
  }
 Catch
 { 
 	(insertTimeStamp) + "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010.." | Out-File $log -append
-	write-Host "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010.."
+	write-Host "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010`r`n"
 }
 
-
-Try { #EX2010
-	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction Stop
-	(insertTimeStamp) + "Exchange 2010 Snapin loaded successfully.." | Out-File $log -append
-	Write-Host "Exchange 2010 Snapin loaded successfully`r`n"
-}
-Catch
+if($ExSnapin -eq 0)
 {
-	(insertTimeStamp) + "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016.." | Out-File $log -append
-	Write-Host "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016`r`n"
+	Try { #EX2010
+		Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction Stop
+		(insertTimeStamp) + "Exchange 2010 Snapin loaded successfully.." | Out-File $log -append
+		Write-Host "Exchange 2010 Snapin loaded successfully`r`n"
+		$ExSnapin=1
+	}
+	Catch
+	{
+		(insertTimeStamp) + "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016.." | Out-File $log -append
+		Write-Host "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016`r`n"
+	}
 }
 
-
-Try { #EX2013 or EX2016
-	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn -ErrorAction Stop
-	(insertTimeStamp) + "Exchange 2013 / 2016 Snapin loaded successfully.." | Out-File $log -append
-	Write-Host "Exchange 2013 / 2016 Snapin loaded successfully`r`n"
-}
-Catch
+if($ExSnapin -eq 0)
 {
-	 Write-Host "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!`r`n"
-	 (insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!" | Out-File $log -append
-	 Exit 1
+	Try { #EX2013 or EX2016
+		Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn -ErrorAction Stop
+		(insertTimeStamp) + "Exchange 2013 / 2016 Snapin loaded successfully.." | Out-File $log -append
+		Write-Host "Exchange 2013 / 2016 Snapin loaded successfully`r`n"
+	}
+	Catch
+	{
+		Write-Host "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!`r`n"
+		(insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!" | Out-File $log -append
+		Exit 1
+	}
 }
-
-
-#----------------------------------------------------------
-#START FUNCTIONS
-#----------------------------------------------------------
-
-Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
-
-#----------------------------------------------------------
+#>
 
 Write-Host "SCRIPT STARTED `r`n"
 (insertTimeStamp) + "Create AD Users in batches from CSV - v3.5" | Out-File $log -append
@@ -98,6 +105,7 @@ Import-CSV $newpath | ForEach-Object{
 	$GivenName = $_.GivenName.Trim()
 	$LastName = $_.LastName.Trim()
 	$CopyUserFrom = $_.CopyUserFrom.Trim()
+	$ForcePasswordChange = $_.ForcePasswordChange.ToLower()
 	$Password = ConvertTo-SecureString -AsPlainText $_.Password -force
 	$Email = $_.Email.Trim()
 	$Department = $_.Department.Trim()
@@ -328,6 +336,7 @@ Import-CSV $newpath | ForEach-Object{
 
 	$propertiesToExport2 = @{}
 
+	If($ForcePasswordChange -eq $True) { $propertiesToExport2.Add("ChangePasswordAtLogon",$True) }
 	If($Email -ne '' -and $Email -ne $null) { $propertiesToExport2.Add("emailaddress",$Email) }
 	If($Department -ne '' -and $Department -ne $null) { $propertiesToExport2.Add("department",$Department) }
 	If($Title -ne '' -and $Title -ne $null) { $propertiesToExport2.Add("title",$Title) }
@@ -357,10 +366,6 @@ Import-CSV $newpath | ForEach-Object{
 	#$ProxyAddresses = $_.ProxyAddresses.Trim()
 
 	#---------------------------------------------------------------------------------------------	
-	Try { $ManagerExists = Get-ADUser -LDAPFilter "(sAMAccountName=$Manager)" }
-	Catch { }
-		
-	If($ManagerExists -ne $null -and $ManagerExists -ne ''){ $propertiesToExport2.Add("manager",$Manager) }
 
 	Write-Host "Below properties will be copied over based on csv entries..`r`n"
 	(insertTimeStamp) + "Below properties will be copied over based on csv entries.." | Out-File $log -append
@@ -383,13 +388,25 @@ Import-CSV $newpath | ForEach-Object{
 		If($TargetOU -ne '' -and $TargetOU -ne $null -and [adsi]::Exists("LDAP://$($TargetOU)"))
 		{
 			Get-AdUser -Identity $sam | Move-ADObject -TargetPath $TargetOU
-			Write-Host "User $sam moved successfully to target OU : $($TargetOU)"
+			Write-Host "User $sam moved successfully to target OU : $($TargetOU)`r`n"
 			(insertTimeStamp) + "User $sam moved successfully to target OU : $($TargetOU)" | Out-File $log -append
 		}
 		Else
 		{
-		  Write-Host "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!"
-		  "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!" | Out-File $log -append
+		  Write-Host "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!`r`n"
+		  (insertTimeStamp) + "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!" | Out-File $log -append
+		}
+
+		$ManagerExists=''
+		If($Manager -ne '' -and $Manager -ne $null) { $ManagerExists = Get-ADUser -LDAPFilter "(sAMAccountName=$Manager)" }
+		#If($ManagerExists -ne $null -and $ManagerExists -ne '') { $propertiesToExport2.Add("manager",$Manager) }
+		If($ManagerExists -ne '' -and $ManagerExists -ne $null)
+		{
+			Write-Host "Attempting to set Manager to $($Manager)`r`n"
+			(insertTimeStamp)+"Attempting to set Manager to $($Manager).." | Out-File $log -append
+			Set-ADUser -identity $sam -manager $Manager
+			Write-Host "Manager set successfully to $($Manager)`r`n"
+			(insertTimeStamp)+"Manager set successfully to $($Manager).." | Out-File $log -append
 		}
 	}
 	
@@ -398,7 +415,7 @@ Import-CSV $newpath | ForEach-Object{
 		Write-Host "[ERROR]`t Oops, something went wrong: $($_.Exception.Message)`r`n"
 		(insertTimeStamp)+"Oops, something went wrong: $($_.Exception.Message)" | Out-File $log -append
 	}
-	
+
 	Write-Host "Moving to next iteration`r`n"
 	(insertTimeStamp) + "Moving to next iteration" | Out-File $log -append
 }
