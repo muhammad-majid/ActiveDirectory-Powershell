@@ -2,4 +2,5 @@ GivenName,LastName,CopyUserFrom,Password,ForcePasswordChange,Email,Department,Ti
 Trial,User1,,Welcome123!,TRUE,test.user1@email.com,Test,Tester,0,1,Hican Net,FALSE,TRUE,Richard.Mackie,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=SPG,OU=CorpUsers,OU=Users,OU=MyBusiness,DC=gg,DC=local",Hican Building,Hicanstreet 1,,Hicancity,TheStateOfHican,1337,Australia,Hican.nl,,,,,,
 Trial,,SBG.CareServicesEmpl,Welcome123!,FALSE,test.user2@email.com,Test,Tester,0,2,Hican Net,FALSE,TRUE,Richard.Mackie,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=SPG,OU=CorpUsers,OU=Users,OU=MyBusiness,DC=gg,DC=local",Hican Building,Hicanstreet 1,,Hicancity,TheStateOfHican,1337,Australia,Hican.nl,,,,,,
 Trial,User3,Stephen.Obrien,Welcome123!,TRUE,,,,,,,,,,,,,,,,,,,,,,,,,
-,User4,Stephen.Obrien,Welcome123!,FALSE,,,,,4,,,,HeHe.HaHa,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=Users,OU=MyBusiness,DC=mango,DC=com,DC=au",,,,,,,,,,,,,,
+Trial,User4,,Welcome123!,TRUE,test.user4@email.com,,,,,,,,asdf.asdf,,,,,,,,,,,,,,,,
+,User5,Stephen.Obrien,Welcome123!,FALSE,,,,,4,,,,HeHe.HaHa,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=Users,OU=MyBusiness,DC=mango,DC=com,DC=au",,,,,,,,,,,,,,
