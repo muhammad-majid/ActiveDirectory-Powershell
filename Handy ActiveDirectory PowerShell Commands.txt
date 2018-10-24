@@ -47,3 +47,12 @@ Unlock-ADAccount –identity $identity
 ----Perform an AD-Azure Sync----
 Import-Module “C:\Program Files\Microsoft Azure AD Sync\Bin\ADSync\ADSync.ps1”
 Start-ADSyncSyncCycle -PolicyType Delta
+
+----Check which DC has flexible single master operations (fsmo) Role----
+netdom /query fsmo
+
+----Get all AD-users with mailbox----
+Get-ADUser -LDAPFilter "(msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation 'C:\Scripts\mailboxed_users.csv'
+
+----Get all AD-users without mailbox----
+Get-ADUser -LDAPFilter "(!msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation 'C:\Scripts\unmailboxed_users.csv'
