@@ -30,6 +30,13 @@ $ExSnapin = 0
 Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
 
 #----------------------------------------------------------
+#END FUNCTIONS
+#----------------------------------------------------------
+
+Write-Host "SCRIPT STARTED `r`n"
+(insertTimeStamp) + "Create AD Users in batches from CSV - v3.5" | Out-File $log -append
+(insertTimeStamp) + "Created by Muhammad Majid, HuonIT.." | Out-File $log -append
+(insertTimeStamp) + "Processing started.." | Out-File $log -append
 
 #----------------------------------------------------------
 # LOAD ASSEMBLIES AND MODULES
@@ -37,41 +44,41 @@ Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + '
 
 Try { #AD
 	Import-Module ActiveDirectory -ErrorAction Stop
-	(insertTimeStamp) + "AD Module loaded successfully.." | Out-File $log -append
 	Write-Host "AD Module loaded successfully`r`n"
+	(insertTimeStamp) + "AD Module loaded successfully.." | Out-File $log -append
  }
 Catch
 {
+	Write-Host "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!`r`n"
 	(insertTimeStamp) + "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!" | Out-File $log -append
-  	Write-Host "[ERROR]`t ActiveDirectory Module couldn't be loaded. Script will stop!`r`n"
   	Exit 1
 }
 
-<#
+
 Try { #EX2007
 	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin -ErrorAction Stop
-	(insertTimeStamp) + "Exchange 2007 Snapin loaded successfully.." | Out-File $log -append
 	Write-Host "Exchange 2007 Snapin loaded successfully`r`n"
+	(insertTimeStamp) + "Exchange 2007 Snapin loaded successfully.." | Out-File $log -append
 	$ExSnapin=1
  }
 Catch
 { 
-	(insertTimeStamp) + "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010.." | Out-File $log -append
 	write-Host "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010`r`n"
+	(insertTimeStamp) + "[ERROR]`t Exchange 2007 Snapin couldn't be loaded. Attempting to load Exchange 2010.." | Out-File $log -append
 }
 
 if($ExSnapin -eq 0)
 {
 	Try { #EX2010
 		Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction Stop
-		(insertTimeStamp) + "Exchange 2010 Snapin loaded successfully.." | Out-File $log -append
 		Write-Host "Exchange 2010 Snapin loaded successfully`r`n"
+		(insertTimeStamp) + "Exchange 2010 Snapin loaded successfully.." | Out-File $log -append
 		$ExSnapin=1
 	}
 	Catch
 	{
-		(insertTimeStamp) + "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016.." | Out-File $log -append
-		Write-Host "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempign to load Exchange 2013 or 2016`r`n"
+		Write-Host "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempting to load Exchange 2013 or 2016`r`n"
+		(insertTimeStamp) + "[ERROR]`t Exchange 2010 Snapin couldn't be loaded. Attempting to load Exchange 2013 or 2016.." | Out-File $log -append
 	}
 }
 
@@ -79,34 +86,39 @@ if($ExSnapin -eq 0)
 {
 	Try { #EX2013 or EX2016
 		Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn -ErrorAction Stop
-		(insertTimeStamp) + "Exchange 2013 / 2016 Snapin loaded successfully.." | Out-File $log -append
 		Write-Host "Exchange 2013 / 2016 Snapin loaded successfully`r`n"
+		(insertTimeStamp) + "Exchange 2013 / 2016 Snapin loaded successfully.." | Out-File $log -append
 	}
 	Catch
 	{
-		Write-Host "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!`r`n"
-		(insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded. Script will stop!" | Out-File $log -append
-		Exit 1
+		Write-Host "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded`r`n"
+		(insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded" | Out-File $log -append
+		$msg = 'All attempts to load Exhcange Snapins failed. Continue script to create users in AD ONLY? [Y/N]'
+		
+		do
+		{
+			$response = Read-Host -Prompt $msg
+			if ($response -eq 'n' -or $response -eq 'N') { Exit 1 }
+		} until ($response -eq 'y' -or $response -eq 'Y')
 	}
 }
-#>
-
-Write-Host "SCRIPT STARTED `r`n"
-(insertTimeStamp) + "Create AD Users in batches from CSV - v3.5" | Out-File $log -append
-(insertTimeStamp) + "Created by Muhammad Majid, HuonIT.." | Out-File $log -append
-(insertTimeStamp) + "Processing started.." | Out-File $log -append
 
 Import-CSV $newpath | ForEach-Object{
 	
 	" " | Out-File $log -append
 	"--------------------------------------------" | Out-File $log -append
 	
-	$i++;
+	$i++
 	$GivenName = $_.GivenName.Trim()
 	$LastName = $_.LastName.Trim()
+
+	" " | Out-File $log -append
+	Write-Host "Running iteration $i for $GivenName $LastName`r`n"
+	(insertTimeStamp) + "Running iteration $i [$GivenName $LastName] .." | Out-File $log -append
+
 	$CopyUserFrom = $_.CopyUserFrom.Trim()
 	$ForcePasswordChange = $_.ForcePasswordChange.ToLower()
-	$Password = ConvertTo-SecureString -AsPlainText $_.Password -force
+	if($_.Password -ne '' -and $_.Password -ne $null) { $Password = ConvertTo-SecureString -AsPlainText $_.Password -force }
 	$Email = $_.Email.Trim()
 	$Department = $_.Department.Trim()
 	$Title = $_.Title.Trim()
@@ -139,11 +151,8 @@ Import-CSV $newpath | ForEach-Object{
 	#poperties that will be imported from template user ($CopyUserFrom) when necessary.
 	$propertiesImported = @("description", "physicalDeliveryOfficeName", "wWWHomePage", "streetAddress", "postOfficeBox", "l", "st", "postalCode", "c", "title", "department", "company", "manager", "enabled")
 	#as well as group memberhips at the time of replication.
-	
-	Write-Host "Running iteration $i for $GivenName $LastName`r`n"
-	Write-Host "Subject username is $($sam)`r`n"
-	"" | Out-File $log -append
-	(insertTimeStamp) + "Running iteration $i [$GivenName $LastName] .." | Out-File $log -append
+
+	Write-Host "Subject username would be $($sam)`r`n"
 	(insertTimeStamp) + "Subject username would be $($sam).." | Out-File $log -append
 	(insertTimeStamp) + "-----------PHASE 1-----------" | Out-File $log -append	
 
@@ -155,7 +164,6 @@ Import-CSV $newpath | ForEach-Object{
 		(insertTimeStamp) + "Processing skipped for Record $($i) : $($Name)" | Out-File $log -append
 		return
 	}
-
 
 	Try { $exists = Get-ADUser -LDAPFilter "(sAMAccountName=$sam)" }		
 	Catch { }
@@ -303,7 +311,7 @@ Import-CSV $newpath | ForEach-Object{
 			If($exists.manager -ne '' -and $exists.manager -ne $null)
 			{
 				Try{ Set-ADUser -identity $sam -manager $exists.manager
-				(insertTimeStamp) + "Manager set successfully" | Out-File $log -append
+				(insertTimeStamp) + "Manager set successfully to: $($exists.manager)" | Out-File $log -append
 				}
 				catch{(insertTimeStamp)+"Oops, something went wrong when copying manager: $($_.Exception.Message)" | Out-File $log -append}
 			}
@@ -398,15 +406,36 @@ Import-CSV $newpath | ForEach-Object{
 		}
 
 		$ManagerExists=''
-		If($Manager -ne '' -and $Manager -ne $null) { $ManagerExists = Get-ADUser -LDAPFilter "(sAMAccountName=$Manager)" }
+
+		If($Manager -ne '' -and $Manager -ne $null)
+		{
+			Write-Host "Attempting to get the Manager: $($Manager)`r`n"
+			(insertTimeStamp)+"Attempting to get Manager: $($Manager)" | Out-File $log -append
+			$ManagerExists = Get-ADUser -LDAPFilter "(sAMAccountName=$Manager)" -Properties SamAccountName | Select-Object SamAccountName
+			Write-Host "Manager obtained as: $($ManagerExists)`r`n"
+			(insertTimeStamp)+"Manager obtained as: $($ManagerExists)" | Out-File $log -append
+		}
+		else
+		{
+			Write-Host "Manager field is left blank`r`n"
+			(insertTimeStamp)+"Manager field is left blank.." | Out-File $log -append
+		}
+		
+		
 		#If($ManagerExists -ne $null -and $ManagerExists -ne '') { $propertiesToExport2.Add("manager",$Manager) }
+		
 		If($ManagerExists -ne '' -and $ManagerExists -ne $null)
 		{
-			Write-Host "Attempting to set Manager to $($Manager)`r`n"
-			(insertTimeStamp)+"Attempting to set Manager to $($Manager).." | Out-File $log -append
-			Set-ADUser -identity $sam -manager $Manager
+			Write-Host "Found Manager: $($ManagerExists)`r`n"
+			(insertTimeStamp) + "Found Manager: $($ManagerExists)" | Out-File $log -append
+			Set-ADUser -identity $sam -manager $ManagerExists
 			Write-Host "Manager set successfully to $($Manager)`r`n"
-			(insertTimeStamp)+"Manager set successfully to $($Manager).." | Out-File $log -append
+			(insertTimeStamp)+"Manager set successfully to $($Manager)" | Out-File $log -append
+		}
+		else
+		{
+			Write-Host "Manager Obtained is invalid: $($ManagerExists)`r`n"
+			(insertTimeStamp) + "Manager Obtained is invalid: $($ManagerExists).." | Out-File $log -append
 		}
 	}
 	
@@ -420,5 +449,6 @@ Import-CSV $newpath | ForEach-Object{
 	(insertTimeStamp) + "Moving to next iteration" | Out-File $log -append
 }
 
-(insertTimeStamp) + "Reached End CSV file, Exiting Script.." | Out-File $log -append
+"--------------------------------------------" | Out-File $log -append
+(insertTimeStamp) + "Reached end of CSV file, Exiting Script.." | Out-File $log -append
 Write-Host "SCRIPT STOPPED"
