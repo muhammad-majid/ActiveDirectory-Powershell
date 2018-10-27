@@ -35,7 +35,6 @@ New-ADGroup –name “Finance” –groupscope Global –path “OU=Offices,DC=
 ----Get members of a Security Group in AD----
 
 
-
 ----Add members to a Security Group in AD----
 Add-ADGroupMember -Identity '$SGName' -Members $Alias1, $Alias2, $Alias3, $Alias4
 
