@@ -54,7 +54,7 @@ Catch
   	Exit 1
 }
 
-
+<#
 Try { #EX2007
 	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.Admin -ErrorAction Stop
 	Write-Host "Exchange 2007 Snapin loaded successfully`r`n"
@@ -102,6 +102,20 @@ if($ExSnapin -eq 0)
 		} until ($response -eq 'y' -or $response -eq 'Y')
 	}
 }
+#>
+
+Try { #EX2013 or EX2016
+	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn -ErrorAction Stop
+	Write-Host "Exchange 2013 / 2016 Snapin loaded successfully`r`n"
+	(insertTimeStamp) + "Exchange 2013 / 2016 Snapin loaded successfully.." | Out-File $log -append
+}
+Catch
+{
+	Write-Host "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded`r`n"
+	(insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded" | Out-File $log -append
+	Exit 1
+}
+
 
 Import-CSV $newpath | ForEach-Object{
 	
@@ -117,8 +131,9 @@ Import-CSV $newpath | ForEach-Object{
 	(insertTimeStamp) + "Running iteration $i [$GivenName $LastName] .." | Out-File $log -append
 
 	$CopyUserFrom = $_.CopyUserFrom.Trim()
-	$ForcePasswordChange = $_.ForcePasswordChange.ToLower()
 	if($_.Password -ne '' -and $_.Password -ne $null) { $Password = ConvertTo-SecureString -AsPlainText $_.Password -force }
+	$CreateMailbox = $_.CreateMailbox.ToLower()
+	$ForcePasswordChange = $_.ForcePasswordChange.ToLower()
 	$Email = $_.Email.Trim()
 	$Department = $_.Department.Trim()
 	$Title = $_.Title.Trim()
@@ -404,6 +419,23 @@ Import-CSV $newpath | ForEach-Object{
 		  Write-Host "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!`r`n"
 		  (insertTimeStamp) + "[Warning]`t Targete OU left blank, or couldn't be found. Newly created user wasn't moved!" | Out-File $log -append
 		}
+
+
+		################## Create Mailbox ##################
+		if($CreateMailbox -eq $true)
+		{
+			Write-Host "Attempting to create mailbox`r`n"
+		  	(insertTimeStamp) + "Attempting to create mailbox.." | Out-File $log -append
+			Enable-Mailbox -Identity  $sam -Database 'MB DB Small'
+			Write-Host "Mailbox created successfully`r`n"
+		  	(insertTimeStamp) + "Mailbox created successfully.." | Out-File $log -append
+		}
+		else
+		{
+			Write-Host "Mailbox creating skipped`r`n"
+			(insertTimeStamp) + "Mailbox creating skipped.." | Out-File $log -append
+		}
+		################## Create Mailbox ##################
 
 		$ManagerExists=''
 
