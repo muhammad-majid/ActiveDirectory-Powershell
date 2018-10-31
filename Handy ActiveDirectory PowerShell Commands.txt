@@ -55,3 +55,7 @@ Get-ADUser -LDAPFilter "(msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation '
 
 ----Get all AD-users without mailbox----
 Get-ADUser -LDAPFilter "(!msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation 'C:\Scripts\unmailboxed_users.csv'
+
+----Get all AD Distribution Groups----
+$Groups = Get-ADGroup -Filter 'groupcategory -eq "distribution"'
+
