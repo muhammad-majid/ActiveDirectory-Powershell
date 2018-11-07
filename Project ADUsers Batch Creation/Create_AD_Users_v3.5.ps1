@@ -104,6 +104,7 @@ if($ExSnapin -eq 0)
 }
 #>
 
+
 Try { #EX2013 or EX2016
 	Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn -ErrorAction Stop
 	Write-Host "Exchange 2013 / 2016 Snapin loaded successfully`r`n"
@@ -432,8 +433,8 @@ Import-CSV $newpath | ForEach-Object{
 		}
 		else
 		{
-			Write-Host "Mailbox creating skipped`r`n"
-			(insertTimeStamp) + "Mailbox creating skipped.." | Out-File $log -append
+			Write-Host "Mailbox creation skipped`r`n"
+			(insertTimeStamp) + "Mailbox creation skipped.." | Out-File $log -append
 		}
 		################## Create Mailbox ##################
 
