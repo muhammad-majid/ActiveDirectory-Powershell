@@ -1,6 +1,0 @@
-GivenName,LastName,CopyUserFrom,Password,CreateMailbox,ForcePasswordChange,Email,Department,Title,Phone,Mobile,Description,PasswordNeverExpires,AccountIsEnabled,Manager,TargetOU,TargetOU2,OfficeName,StreetAddress,POBox,City,State,PostalCode,Country,Company,WebPage,ProfilePath,ScriptPath,HomeDirectory,HomeDrive,ProxyAddresses
-Trial,User1,,Welcome123!,FALSE,TRUE,test.user1@email.com,Test,Tester,0,1,Hican Net,FALSE,TRUE,Richard.Mackie,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=SPG,OU=CorpUsers,OU=Users,OU=MyBusiness,DC=gg,DC=local",Hican Building,Hicanstreet 1,,Hicancity,TheStateOfHican,1337,Australia,Hican.nl,,,,,,
-Trial,,SBG.CareServicesEmpl,Welcome123!,TRUE,FALSE,test.user2@email.com,Test,Tester,0,2,Hican Net,FALSE,TRUE,Richard.Mackie,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=SPG,OU=CorpUsers,OU=Users,OU=MyBusiness,DC=gg,DC=local",Hican Building,Hicanstreet 1,,Hicancity,TheStateOfHican,1337,Australia,Hican.nl,,,,,,
-Trial,User3,Stephen.Obrien,Welcome123!,TRUE,TRUE,,,,,,,,,,,,,,,,,,,,,,,,,
-Trial,User4,,Welcome123!,,TRUE,test.user4@email.com,,,,,,,,asdf.asdf,,,,,,,,,,,,,,,,
-,User5,Stephen.Obrien,Welcome123!,FALSE,FALSE,,,,,4,,,,HeHe.HaHa,"OU=Managed Users,OU=iEmirates Steel,DC=ieisf,DC=co,DC=ae","OU=Users,OU=MyBusiness,DC=mango,DC=com,DC=au",,,,,,,,,,,,,,
