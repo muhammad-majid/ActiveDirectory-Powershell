@@ -59,3 +59,17 @@ Get-ADUser -LDAPFilter "(!msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation 
 ----Get all AD Distribution Groups----
 $Groups = Get-ADGroup -Filter 'groupcategory -eq "distribution"'
 
+----Run a DC diagnostic----
+dcdiag
+dcdiag /test:replications	// to test replication
+
+----Get all Server OSs in the envoronment----
+Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled -eq "True")} -Properties OperatingSystem | Sort Name | select -Unique OperatingSystem
+
+----Get all Server and their respective OSs in the envoronment----
+Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled -eq "True")} -Properties OperatingSystem | sort OperatingSystem | ft DNSHostName, OperatingSystem
+
+----Get a count of all Server and their respective OSs in the envoronment----
+$Servers = Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled -eq "True")} -Properties OperatingSystem | Sort Name
+$servers | group operatingsystem 
+
