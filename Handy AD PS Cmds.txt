@@ -1,11 +1,14 @@
 ----Auto Redirection of default landing OU for newly joined domain computers----
 redircmp 'OU=Workstations,OU=Emirates Steel,DC=eisf,DC=co,DC=ae
 
+----check a user's password details----
+net user $usrename
+
 ----Get each AD user and all the groups he belongs to----
 Get-ADUser -Filter {Enabled -eq $true} | .\getGroups.ps1 | Export-CSV C:\Scripts\UserMembers.csv
 Get-ADUser -Filter * | Select Name, SamAccountName, @{n='OU';e={$_.distinguishedname -replace '^.+?,(CN|OU.+)','$1'}} | Export-Csv "C:\Scripts\users.csv" -Encoding "Unicode"
 
-----Get list of all Groups a user belongs to----
+----Get list of all Security Groups a user belongs to----
 Get-ADPrincipalGroupMembership $Username | Select Name
 Get-ADPrincipalGroupMembership $Username | Select Name | Export-CSV "C:\Scripts\UserMemberships.csv" -NoTypeInformation -Encoding UTF8
 
@@ -35,8 +38,12 @@ New-ADGroup –name “Finance” –groupscope Global –path “OU=Offices,DC=
 ----Get members of a Security Group in AD----
 
 
+
 ----Add members to a Security Group in AD----
 Add-ADGroupMember -Identity '$SGName' -Members $Alias1, $Alias2, $Alias3, $Alias4
+
+----Add all users in a certain OU to a Security Group in AD----
+Get-ADUser -SearchBase "OU=Users, OU=Crisis Support Services, DC=css, DC=local" -Filter * | ForEach-Object {Add-ADGroupMember -Identity ‘VPN Users’ -Members $_ }
 
 ----Reset password in AD----
 Set-ADAccountPassword $identity -Reset -NewPassword (ConvertTo-SecureString -AsPlainText “$newPassword” -Force -Verbose) -PassThru
