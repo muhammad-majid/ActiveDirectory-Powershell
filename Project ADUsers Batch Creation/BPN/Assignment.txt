@@ -1,0 +1,15 @@
+Hi Muhammad
+
+Please find excel sheet with data attached. We need to generate random passwords for the users and record them in the excel sheet.
+
+Client : Brisbane North PHN
+
+Check the user listed below in the email if that user is not in an OU on its own then create new OU call it GPPPortal Users and create all users in that OU.
+
+I will assign the licences when they are synced up to Office 365
+
+Thanks
+Reg
+
+
+
