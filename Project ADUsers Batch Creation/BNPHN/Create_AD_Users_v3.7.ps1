@@ -1,5 +1,5 @@
 <#
-Created by Muhammad Majid, HuonIT
+Created by Muhammad Majid, blueApache
 Order of execution:
 01. Check FistName, Lastname and Password fields are not blank, proceed an create a new user (firstname.lastname)
 02. Once created, check copyUserFrom field, find that user, and copy all properties of that user to the newly created user.
@@ -27,15 +27,41 @@ $ExSnapin = 0
 #START FUNCTIONS
 #----------------------------------------------------------
 
-Function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
+function insertTimeStamp { return (Get-Date).ToString('yyyy-MM-dd HH:mm:ss') + ' : ' }
+
+function Get-RandomCharacters($length, $characters)
+{
+    $random = 1..$length | ForEach-Object { Get-Random -Maximum $characters.length }
+    $private:ofs=""
+    return [String]$characters[$random]
+}
+ 
+function Scramble-String([string]$inputString)
+{
+    $characterArray = $inputString.ToCharArray()   
+    $scrambledStringArray = $characterArray | Get-Random -Count $characterArray.Length     
+    $outputString = -join $scrambledStringArray
+    return $outputString 
+}
+function New-RandomPassword ($len)
+{ 
+	$pass = Get-RandomCharacters -length 1 -characters 'ACDEFGHKMNPRSTUVWXYZ'
+	$pass += Get-RandomCharacters -length 1 -characters '2345679'
+	$pass += Get-RandomCharacters -length 1 -characters '!$%&/()=?}][{@#*+'
+	$pass += Get-RandomCharacters -length ($len-3) -characters 'abcdefghikmnprstuvwxyz'
+	$pass = Scramble-String ($pass)
+	return $pass
+}
+
+
 
 #----------------------------------------------------------
 #END FUNCTIONS
 #----------------------------------------------------------
 
 Write-Host "SCRIPT STARTED `r`n"
-(insertTimeStamp) + "Create AD Users in batches from CSV - v3.5" | Out-File $log -append
-(insertTimeStamp) + "Created by Muhammad Majid, HuonIT.." | Out-File $log -append
+(insertTimeStamp) + "Create AD Users in batches from CSV - v3.7" | Out-File $log -append
+(insertTimeStamp) + "Created by Muhammad Majid, blueApache.." | Out-File $log -append
 (insertTimeStamp) + "Processing started.." | Out-File $log -append
 
 #----------------------------------------------------------
@@ -102,7 +128,7 @@ if($ExSnapin -eq 0)
 		} until ($response -eq 'y' -or $response -eq 'Y')
 	}
 }
-#>
+
 
 
 Try { #EX2013 or EX2016
@@ -116,7 +142,7 @@ Catch
 	(insertTimeStamp) + "[ERROR]`t Exchange 2013 / 2016 Snapin couldn't be loaded" | Out-File $log -append
 	Exit 1
 }
-
+#>
 
 Import-CSV $newpath | ForEach-Object{
 	
@@ -132,7 +158,19 @@ Import-CSV $newpath | ForEach-Object{
 	(insertTimeStamp) + "Running iteration $i [$GivenName $LastName] .." | Out-File $log -append
 
 	$CopyUserFrom = $_.CopyUserFrom.Trim()
-	if($_.Password -ne '' -and $_.Password -ne $null) { $Password = ConvertTo-SecureString -AsPlainText $_.Password -force }
+	#$_.Username handled below
+	#$visiblePassword
+	if($_.Password -ne '' -and $_.Password -ne $null)
+	{
+		$visiblePassword = $_.Password
+		$Password = ConvertTo-SecureString -AsPlainText $_.Password -force #let it convert even if .randomise sine next command takes care of it.
+	}	
+	
+	if($_.Password.ToLower() -eq '.randomise')
+	{
+		$visiblePassword = New-RandomPassword(8)
+		$Password = ConvertTo-SecureString -AsPlainText $(New-RandomPassword(8)) -force
+	}
 	$CreateMailbox = $_.CreateMailbox.ToLower()
 	$ForcePasswordChange = $_.ForcePasswordChange.ToLower()
 	$Email = $_.Email.Trim()
@@ -161,6 +199,10 @@ Import-CSV $newpath | ForEach-Object{
 	$ProxyAddresses = $_.ProxyAddresses.Trim()
 
 	$sam = $GivenName.ToLower() + "." + $LastName.ToLower()
+	if($_.Username.Trim() -ne '' -and $_.Username.Trim() -ne $null) { $sam = $_.Username.Trim() }
+	$sam = $sam -replace '\s+',''	#remove any spaces within the username
+	if ($sam.length -gt 20) { $sam = $sam.substring(0,20) } #shorten username to 20 characters for sAMAccountName
+	
 	$Name = $GivenName+" "+$LastName
 	$userPrincipalName = $sam+"@"+$dnsroot
 
@@ -175,8 +217,9 @@ Import-CSV $newpath | ForEach-Object{
 	#if first name, last name or password are missing, skip move to next iteration.
 	If ($GivenName -eq '' -Or $GivenName -eq $null -Or $LastName -eq '' -Or $LastName -eq $null -Or $_.Password -eq '' -Or $_.Password -eq $null)
 	{
-		Write-Host "[WARNING]`t Please provide valid GivenName, LastName and Password.`r`nProcessing skipped for Record $($i) : $($Name)`r`n"
+		Write-Host "[WARNING]`t Please provide valid GivenName, LastName and Password.`r`nMay use '.randomise' to generate a random 8 character password on the fly.`r`nProcessing skipped for Record $($i) : $($Name)`r`n"
 		(insertTimeStamp) + "[WARNING]`t Please provide valid GivenName, LastName and Password" | Out-File $log -append
+		(insertTimeStamp) + "[INFO]`t May use '.randomise' to generate a random 8 character password on the fly" | Out-File $log -append
 		(insertTimeStamp) + "Processing skipped for Record $($i) : $($Name)" | Out-File $log -append
 		return
 	}
@@ -194,8 +237,8 @@ Import-CSV $newpath | ForEach-Object{
 	Write-Host "Creating User`r`n"
 	(insertTimeStamp) + "Creating User.." | Out-File $log -append
 	New-ADuser -sAMAccountName $sam -UserPrincipalName $userPrincipalName -Name $Name -GivenName $GivenName -Surname $LastName -DisplayName $Name -AccountPassword $Password
-	Write-Host "$($sam) created successfully`r`n"
-	(insertTimeStamp) + "$($sam) created successfully.." | Out-File $log -append
+	Write-Host "$($sam) created successfully with password: $($visiblePassword)`r`n"
+	(insertTimeStamp) + "$($sam) created successfully with password ->> $($visiblePassword) <<-.." | Out-File $log -append
 	$propertiesToExport = @{}
 		
 	#If ($CopyUserFrom -ne $null -and $CopyUserFrom -ne '')		#if csv has template for the new user
@@ -354,7 +397,7 @@ Import-CSV $newpath | ForEach-Object{
 	}
 
 	#continuing from csv entries...
-	Write-Host "proceeding with user modification (if any) from rest of the entries in .csv file`r`n"
+	Write-Host "Proceeding with user modification (if any) from rest of the entries in .csv file`r`n"
 	(insertTimeStamp) + "-----------PHASE 2-----------" | Out-File $log -append	
 	(insertTimeStamp) + "proceeding with user modification (if any) from rest of the attributes in .csv file.." | Out-File $log -append	
 
@@ -467,8 +510,8 @@ Import-CSV $newpath | ForEach-Object{
 		}
 		else
 		{
-			Write-Host "Manager Obtained is invalid: $($ManagerExists)`r`n"
-			(insertTimeStamp) + "Manager Obtained is invalid: $($ManagerExists).." | Out-File $log -append
+			Write-Host "Manager obtained is invalid: $($ManagerExists)`r`n"
+			(insertTimeStamp) + "Manager obtained is invalid: $($ManagerExists).." | Out-File $log -append
 		}
 	}
 	
@@ -479,7 +522,7 @@ Import-CSV $newpath | ForEach-Object{
 	}
 
 	Write-Host "Moving to next iteration`r`n"
-	(insertTimeStamp) + "Moving to next iteration" | Out-File $log -append
+	(insertTimeStamp) + "Moving to next iteration.." | Out-File $log -append
 }
 
 "--------------------------------------------" | Out-File $log -append
