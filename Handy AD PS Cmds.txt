@@ -1,3 +1,6 @@
+----Connect to Azure AD via Powershell----
+Connect-MsolService
+
 ----Auto Redirection of default landing OU for newly joined domain computers----
 redircmp 'OU=Workstations,OU=Emirates Steel,DC=eisf,DC=co,DC=ae
 
