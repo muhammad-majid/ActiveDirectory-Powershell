@@ -39,7 +39,8 @@ New-ADGroup –name “Finance” –groupscope Global
 New-ADGroup –name “Finance” –groupscope Global –path “OU=Offices,DC=Contoso,DC=local”
 
 ----Get members of a Security Group in AD----
-
+Get-AdGroupMember -identity $SG-Name
+Get-AdGroupMember -identity $SG-Name -Recursive | Export-CSV "C:\Scripts\SG_Members.csv" -NoTypeInformation		//to get members of subgroups as well
 
 
 ----Add members to a Security Group in AD----
@@ -67,7 +68,7 @@ Get-ADUser -LDAPFilter "(msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation '
 Get-ADUser -LDAPFilter "(!msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation 'C:\Scripts\unmailboxed_users.csv'
 
 ----Get all AD Distribution Groups----
-$Groups = Get-ADGroup -Filter 'groupcategory -eq "distribution"'
+$Groups = Get-ADGroup -Filter 'groupcategory -eq "distribution"' | Export-Csv -NoTypeInformation 'C:\Scripts\DGGrups.csv'
 
 ----Run a DC diagnostic----
 dcdiag
