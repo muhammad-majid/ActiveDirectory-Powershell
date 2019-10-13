@@ -14,6 +14,10 @@ Get-ADUser -Filter * | Select Name, SamAccountName, @{n='OU';e={$_.distinguished
 ----Get list of all Security Groups a user belongs to----
 Get-ADPrincipalGroupMembership $Username | Select Name
 Get-ADPrincipalGroupMembership $Username | Select Name | Export-CSV "C:\Scripts\UserMemberships.csv" -NoTypeInformation -Encoding UTF8
+Get-ADUser -Identity $Username -Properties memberof | Select-Object -ExpandProperty memberof
+
+----Copy Security Group membership of a user to another----
+Get-ADUser -Identity $UserToCopy -Properties memberof | Select-Object -ExpandProperty memberof |  Add-ADGroupMember -Members $UserToPaste
 
 ----Get all Domain Controllers in the Domain----
 Get-ADDomainController -Filter * | Select-Object name
@@ -83,4 +87,9 @@ Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled
 ----Get a count of all Server and their respective OSs in the envoronment----
 $Servers = Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled -eq "True")} -Properties OperatingSystem | Sort Name
 $servers | group operatingsystem 
+
+----Check to which email  directory synchronization notification are going to----
+Connect-MsolService	//connect to Azure AD
+Get-MsolCompanyInformation | FL DisplayName, TechnicalNotificationEmails
+Set-MsolCompanyContactInformation -TechnicalNotificationEmails "$newEmailAddress"
 
