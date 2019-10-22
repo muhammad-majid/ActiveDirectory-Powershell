@@ -93,3 +93,6 @@ Connect-MsolService	//connect to Azure AD
 Get-MsolCompanyInformation | FL DisplayName, TechnicalNotificationEmails
 Set-MsolCompanyContactInformation -TechnicalNotificationEmails "$newEmailAddress"
 
+----Get all users phone numbers----
+Get-ADUser -f * -Properties *| where {$_.enabled -eq $true} | ft Name,EmailAddress,*Phone
+
