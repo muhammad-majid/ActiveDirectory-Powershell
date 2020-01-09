@@ -96,3 +96,5 @@ Set-MsolCompanyContactInformation -TechnicalNotificationEmails "$newEmailAddress
 ----Get all users phone numbers----
 Get-ADUser -f * -Properties *| where {$_.enabled -eq $true} | ft Name,EmailAddress,*Phone
 
+----Get all Computers----
+Get-ADComputer -Filter * -Property * | Select-Object Name, OperatingSystem, OperatingSystemVersion, ipv4Address | Export-CSV C:\Scripts\ADcomputerslist.csv -NoTypeInformation -Encoding UTF8
