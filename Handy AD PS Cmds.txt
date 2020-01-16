@@ -98,3 +98,9 @@ Get-ADUser -f * -Properties *| where {$_.enabled -eq $true} | ft Name,EmailAddre
 
 ----Get all Computers----
 Get-ADComputer -Filter * -Property * | Select-Object Name, OperatingSystem, OperatingSystemVersion, ipv4Address | Export-CSV C:\Scripts\ADcomputerslist.csv -NoTypeInformation -Encoding UTF8
+
+----Search for a perticular attribute in all AD users----
+Get-ADUser -LDAPFilter "($attributeName=$attributeValue)"
+
+----Search for everything except the perticular attribute in all AD users----
+Get-ADUser -LDAPFilter "(!$attributeName=$attributeValue)"
