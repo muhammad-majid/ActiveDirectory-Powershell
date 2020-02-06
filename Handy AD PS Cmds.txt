@@ -72,7 +72,10 @@ Get-ADUser -LDAPFilter "(msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation '
 Get-ADUser -LDAPFilter "(!msExchMailboxGuid=*)" | Export-Csv -NoTypeInformation 'C:\Scripts\unmailboxed_users.csv'
 
 ----Get all AD Distribution Groups----
-$Groups = Get-ADGroup -Filter 'groupcategory -eq "distribution"' | Export-Csv -NoTypeInformation 'C:\Scripts\DGGrups.csv'
+$Groups = Get-ADGroup -Filter 'groupcategory -eq "distribution"' | Export-Csv -NoTypeInformation 'C:\Scripts\DGGroups.csv'
+
+----Get all AD Security Groups----
+$Groups = Get-ADGroup -Filter 'groupcategory -eq "security"' | Export-Csv -NoTypeInformation 'C:\Scripts\SGGroups.csv'
 
 ----Run a DC diagnostic----
 dcdiag
