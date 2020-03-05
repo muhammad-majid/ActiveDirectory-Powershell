@@ -5,7 +5,8 @@ Connect-MsolService
 redircmp 'OU=Workstations,OU=Emirates Steel,DC=eisf,DC=co,DC=ae
 
 ----check a user's password details----
-net user $username
+net user $username								// regular password GPO on domain
+Get-ADUserResultantPasswordPolicy $username		// Fine grained password policy
 
 ----Get each AD user and all the groups he belongs to----
 Get-ADUser -Filter {Enabled -eq $true} | .\getGroups.ps1 | Export-CSV C:\Scripts\UserMembers.csv
