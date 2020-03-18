@@ -47,7 +47,6 @@ New-ADGroup –name “Finance” –groupscope Global –path “OU=Offices,DC=
 Get-AdGroupMember -identity $SG-Name
 Get-AdGroupMember -identity $SG-Name -Recursive | Export-CSV "C:\Scripts\SG_Members.csv" -NoTypeInformation		//to get members of subgroups as well
 
-
 ----Add members to a Security Group in AD----
 Add-ADGroupMember -Identity '$SGName' -Members $Alias1, $Alias2, $Alias3, $Alias4
 
