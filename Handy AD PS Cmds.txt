@@ -107,3 +107,7 @@ Get-ADUser -LDAPFilter "($attributeName=$attributeValue)"
 
 ----Search for everything except the perticular attribute in all AD users----
 Get-ADUser -LDAPFilter "(!$attributeName=$attributeValue)"
+
+
+----Add memmber to managed senders of a Distribution List synced with AD----
+Set-ADObject "$distinguishedNameOfDG" -add @{authorig="$distinguishedNameOfNewMember"}
