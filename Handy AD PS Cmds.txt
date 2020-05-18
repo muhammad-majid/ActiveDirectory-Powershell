@@ -111,3 +111,7 @@ Get-ADUser -LDAPFilter "(!$attributeName=$attributeValue)"
 
 ----Add memmber to managed senders of a Distribution List synced with AD----
 Set-ADObject "$distinguishedNameOfDG" -add @{authorig="$distinguishedNameOfNewMember"}
+
+----Get ACL / Folder Permissions----
+get-FolderACL.ps1 -path [-recurse] $folderPath | ConvertTo-Html | Out-File .\outputFileName.html
+get-FolderACL.ps1 -path [-recurse] $folderPath | Export-CSV .\outputFileName.csv -noTypeInformation
