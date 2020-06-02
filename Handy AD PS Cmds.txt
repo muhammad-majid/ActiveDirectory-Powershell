@@ -91,7 +91,7 @@ Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled
 $Servers = Get-ADComputer -Filter {(OperatingSystem -like "*windows*server*") -and (Enabled -eq "True")} -Properties OperatingSystem | Sort Name
 $servers | group operatingsystem 
 
-----Check to which email  directory synchronization notification are going to----
+----Check to which email directory synchronization notification are going to----
 Connect-MsolService	//connect to Azure AD
 Get-MsolCompanyInformation | FL DisplayName, TechnicalNotificationEmails
 Set-MsolCompanyContactInformation -TechnicalNotificationEmails "$newEmailAddress"
@@ -107,7 +107,6 @@ Get-ADUser -LDAPFilter "($attributeName=$attributeValue)"
 
 ----Search for everything except the perticular attribute in all AD users----
 Get-ADUser -LDAPFilter "(!$attributeName=$attributeValue)"
-
 
 ----Add memmber to managed senders of a Distribution List synced with AD----
 Set-ADObject "$distinguishedNameOfDG" -add @{authorig="$distinguishedNameOfNewMember"}
