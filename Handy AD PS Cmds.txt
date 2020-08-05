@@ -32,6 +32,9 @@ Remove-ADuser $identity
 ----Get all AD Users with employeeID not null, select employeeID emailAddress telephoneNumber and mobile----
 Get-ADUser -filter * -Properties employeeID, emailAddress, telephoneNumber, mobile | ? {$_.employeeID -ne $null} | select employeeID, emailAddress, telephoneNumber, mobile | ConvertTo-Csv -Delimiter ~ -NoTypeInformation | % {$_ -replace '"',''} | Out-File SAP_DUMP.csv -fo -en ascii
 
+----Get all active AD Users and their last logon---- 
+Get-ADUser -Filter {Enabled -eq $true} -Properties * | select Name, SamAccountName, objectclass, lastLogondate | Export-CSV C:\Scripts\UserDetails.csv
+
 ----Get Azure AD Sync Schedule----
 Import-Module ADSync
 Get-ADSyncScheduler
@@ -60,7 +63,11 @@ Unlock-ADAccount –identity $identity
 
 ----Perform an AD-Azure Sync----
 Import-Module “C:\Program Files\Microsoft Azure AD Sync\Bin\ADSync\ADSync.ps1”
-Start-ADSyncSyncCycle -PolicyType Delta
+Start-ADSyncSyncCycle -PolicyType Delta			//last changes
+Start-ADSyncSyncCycle -PolicyType Initial		//full sync													  
+----Get Azure AD Sync Schedule----
+Import-Module ADSync
+Get-ADSyncScheduler								  
 
 ----Check which DC has flexible single master operations (fsmo) Role----
 netdom /query fsmo
